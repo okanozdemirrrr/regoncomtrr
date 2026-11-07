@@ -53,10 +53,10 @@ export function MockThermalReceipt({ className }: { className?: string }) {
           </div>
         </div>
 
-        {/* Müşteri ve Caller ID */}
+        {/* Müşteri ve Telefon Tanıma */}
         <div className="receipt-line py-2.5 border-b border-dashed border-[#1A1612]/30 space-y-0.5" style={{ animationDelay: '0.2s' }}>
           <div className="text-[10px] font-semibold text-text-secondary uppercase">
-            MÜŞTERİ [CALLER ID İLE BULUNDU]:
+            MÜŞTERİ [TELEFON ÇALINCA OTOMATİK BULUNDU]:
           </div>
           <p className="font-bold">AHMET Y. (0532 *** ** 84)</p>
           <p className="text-[10px] text-text-secondary">Caferağa Mah. Moda Cad. No:18 D:4 Kadıköy</p>
@@ -146,7 +146,7 @@ export function MockThermalReceipt({ className }: { className?: string }) {
   )
 }
 
-/** 2. Regon POS: Adisyon ve Caller ID Konsolu */
+/** 2. Regon POS: Adisyon ve Telefon Tanıma Konsolu */
 export function MockPosScreen({ className }: { className?: string }) {
   return (
     <div className={cn('border border-[#1A1612] bg-[#FAF8F3] font-mono text-xs text-text-primary shadow-[2px_2px_0px_#1A1612]', className)}>
@@ -162,11 +162,11 @@ export function MockPosScreen({ className }: { className?: string }) {
         </div>
       </div>
 
-      {/* Caller ID Arayan Bildirimi Çubuğu */}
+      {/* Telefon Çalınca Müşteri Bildirimi Çubuğu */}
       <div className="flex flex-wrap items-center justify-between border-b border-[#1A1612] bg-accent-soft px-3 py-2 text-[11px]">
         <div className="flex items-center gap-2">
           <span className="size-2 rounded-full bg-accent animate-ping" />
-          <span className="font-bold text-accent-ink">GELEN ÇAĞRI (CALLER ID):</span>
+          <span className="font-bold text-accent-ink">GELEN ÇAĞRI (MÜŞTERİ TANINDI):</span>
           <span className="font-bold">0532 914 ** **</span>
         </div>
         <span className="text-[10px] text-text-secondary">Kayıt: Ahmet Y. (Son Sipariş: 3 gün önce)</span>
@@ -314,10 +314,10 @@ export function MockCourierMap({ className }: { className?: string }) {
             </div>
           </div>
 
-          {/* Alt Özet Mutabakat Çubuğu */}
+          {/* Alt Özet Gün Sonu Hesap Çubuğu */}
           <div className="relative z-10 mt-6 pt-2 border-t border-[#1A1612] flex flex-wrap justify-between text-[10px] font-bold text-text-primary bg-surface-paper/90 p-2">
             <span>GÜNLÜK TESLİMAT: 84 PAKET</span>
-            <span>MUTABAKAT: 35.280 TL</span>
+            <span>GÜN SONU HESAP: 35.280 TL</span>
             <span className="text-emerald-800">BAŞARI: %99.4</span>
           </div>
         </div>

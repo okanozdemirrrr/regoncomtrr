@@ -7,8 +7,8 @@ import { Container } from '@/components/ui/Container'
 import tr from '@/i18n/tr'
 
 const navLinks = [
-  { href: '#biz-kimiz', label: 'Biz Kimiz', code: '01', id: 'biz-kimiz' },
-  { href: '#urunler', label: tr.nav.projects, code: '02', id: 'urunler' },
+  { href: '#urunler', label: tr.nav.projects, code: '01', id: 'urunler' },
+  { href: '#biz-kimiz', label: 'Biz Kimiz', code: '02', id: 'biz-kimiz' },
   { href: '#nasil-calisiyoruz', label: 'Nasıl Çalışıyoruz', code: '03', id: 'nasil-calisiyoruz' },
   { href: '#iletisim', label: tr.nav.contact, code: '04', id: 'iletisim' },
 ]
@@ -122,7 +122,7 @@ export function Navbar() {
           {/* Masaüstü CTA */}
           <div className="hidden items-center gap-3 md:flex">
             <Link
-              href="/portal"
+              href="/portal/giris"
               className={cn(
                 'inline-flex h-9 items-center border border-[#1A1612] bg-[#FAF8F3] px-3.5 font-mono text-xs uppercase tracking-wider text-text-primary',
                 'transition-colors hover:bg-[#1A1612] hover:text-[#FAF8F3]',
@@ -178,7 +178,7 @@ export function Navbar() {
             })}
             <li className="pt-2">
               <Link
-                href="/portal"
+                href="/portal/giris"
                 className="flex min-h-11 items-center justify-center border border-[#1A1612] bg-[#1A1612] font-mono text-xs uppercase tracking-wider text-[#FAF8F3]"
                 onClick={() => setOpen(false)}
               >

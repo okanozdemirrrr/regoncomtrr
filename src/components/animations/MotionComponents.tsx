@@ -21,6 +21,15 @@ interface RevealProps {
   as?: React.ElementType
 }
 
+function shouldSkipRevealMotion(): boolean {
+  if (typeof window === 'undefined') return true
+  if (prefersReducedMotion()) return true
+  // Küçük ekran veya düşük çekirdek: GSAP Reveal atlanır (içerik görünür kalır)
+  if (window.matchMedia('(max-width: 640px)').matches) return true
+  if (typeof navigator !== 'undefined' && (navigator.hardwareConcurrency ?? 8) <= 2) return true
+  return false
+}
+
 export function Reveal({
   children,
   delay = 0,
@@ -32,7 +41,7 @@ export function Reveal({
 
   useEffect(() => {
     const el = ref.current
-    if (!el || prefersReducedMotion()) return
+    if (!el || shouldSkipRevealMotion()) return
 
     const ctx = gsap.context(() => {
       gsap.fromTo(
@@ -243,34 +252,9 @@ interface ParallaxLayerProps {
   className?: string
 }
 
-export function ParallaxLayer({ children, speed = 0.15, className }: ParallaxLayerProps) {
-  const ref = useRef<HTMLDivElement>(null)
-
-  useEffect(() => {
-    const el = ref.current
-    if (!el || prefersReducedMotion()) return
-
-    const mm = gsap.matchMedia()
-
-    // Sadece 768px üzeri masaüstü ve tablet cihazlarda çalışır
-    mm.add('(min-width: 768px)', () => {
-      gsap.to(el, {
-        y: () => -100 * speed,
-        ease: 'none',
-        scrollTrigger: {
-          trigger: el,
-          start: 'top bottom',
-          end: 'bottom top',
-          scrub: true,
-        },
-      })
-    })
-
-    return () => mm.revert()
-  }, [speed])
-
+export function ParallaxLayer({ children, className }: ParallaxLayerProps) {
   return (
-    <div ref={ref} className={cn('will-change-transform', className)}>
+    <div className={cn('will-change-transform', className)}>
       {children}
     </div>
   )

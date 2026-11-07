@@ -42,8 +42,8 @@ export const siteConfig = {
     {
       value: 2,
       suffix: ' Mobil Platform',
-      label: 'Hibrit Mobil Dağıtım',
-      description: 'Capacitor ile iOS ve Android yerel cihaz entegrasyonu',
+      label: 'Yerli Mobil Dağıtım',
+      description: 'iOS ve Android telefonlarda şarj dostu kurye uygulaması',
     },
     {
       value: 100,
@@ -53,4 +53,13 @@ export const siteConfig = {
       description: 'Donanım ve yazılım işletmede bizzat kurularak canlıya alınır',
     },
   ],
+
+  // Fiyat/Hız vaadi cümleleri - biri seçili, diğerleri alternatif
+  priceSpeedPromise: {
+    selected: 'Yapay zeka destekli geliştirme sürecimizle aynı işi çok daha kısa sürede çıkarıyor, bu hızı fiyata yansıtıyoruz.',
+    alternatives: [
+      'Geliştirme hızımızı katlayan modern mühendislik metodolojilerini kullanıyoruz, bu verimliliği en uygun fiyat garantisi olarak sunuyoruz.',
+      'Ürünlerimiz yapay zeka gücüyle harmanlanan bir süreçte üretiliyor, bu sayede hız ve kaliteyi en uygun fiyatla sunuyoruz.',
+    ],
+  },
 } as const

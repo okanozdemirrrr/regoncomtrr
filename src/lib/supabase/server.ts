@@ -1,25 +1,15 @@
+import 'server-only'
 import { createClient } from '@supabase/supabase-js'
 import type { Database } from '@/types/supabase'
+import { getEnv } from '@/lib/env'
 
 /**
- * Sunucu tarafı Supabase istemcisi.
- * Server Components, Route Handlers ve Server Actions'da kullanılır.
- * Service Role Key ile RLS bypass gerektiğinde bu istemci kullanılır.
- *
- * NOT: Bu dosya asla Client Component'e import edilmez.
- * Aşama 3'te @supabase/ssr paketi ile cookie tabanlı auth eklenecek.
+ * Sunucu tarafı Supabase istemcisi (service role).
+ * Client Component'e import edilmez. Key asla NEXT_PUBLIC_ olmaz.
  */
 export function getSupabaseServerClient() {
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-  const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
-
-  if (!supabaseUrl || !supabaseServiceKey) {
-    throw new Error(
-      'Supabase sunucu ortam değişkenleri eksik. .env.local dosyasını kontrol edin.',
-    )
-  }
-
-  return createClient<Database>(supabaseUrl, supabaseServiceKey, {
+  const env = getEnv()
+  return createClient<Database>(env.SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY, {
     auth: {
       autoRefreshToken: false,
       persistSession: false,

@@ -35,7 +35,7 @@ export function PortalCtaSection() {
             <div className="lg:col-span-4 flex flex-col sm:flex-row lg:flex-col gap-3 font-mono text-xs">
               <Reveal delay={0.2}>
                 <Link
-                  href="/portal"
+                  href="/portal/giris"
                   className="flex h-12 w-full items-center justify-between border border-[#1A1612] bg-[#1A1612] px-6 uppercase font-bold text-[#FAF8F3] hover:bg-accent hover:border-accent hover:text-[#100F0D] transition-colors shadow-[2px_2px_0px_#1A1612]"
                 >
                   <span>Aktivasyon Koduyla Gir</span>

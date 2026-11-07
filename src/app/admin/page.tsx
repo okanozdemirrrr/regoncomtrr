@@ -8,20 +8,18 @@ export const metadata: Metadata = {
 }
 
 /**
- * Admin Paneli — Aşama 4'te Supabase Auth ile korunacak.
- * Şimdilik: yer tutucu sayfa.
+ * Admin paneli iskeleti — Supabase Auth koruması Aşama 6'da.
  */
 export default function AdminPage() {
   return (
     <Container className="flex min-h-[60dvh] flex-col items-center justify-center py-16 text-center">
-      <div className="rounded-2xl border border-white/8 bg-surface-1 p-10 sm:p-14">
-        <h1 className="mb-3 text-2xl font-bold text-text-primary">Yönetici Paneli</h1>
-        <p className="mb-6 text-sm text-text-secondary">
-          Bu alan yalnızca Regon yöneticileri içindir. Aşama 4&apos;te Supabase Auth ile korunacak.
+      <div className="border-2 border-[#1A1612] bg-surface-paper p-10 sm:p-14 shadow-[4px_4px_0px_#1A1612]">
+        <h1 className="mb-3 font-display text-2xl font-black text-text-primary">Yönetici Paneli</h1>
+        <p className="mb-6 font-mono text-xs text-text-secondary">
+          Bu alan yalnızca Regon yöneticileri içindir. Kimlik doğrulama Aşama 6&apos;da açılacak.
         </p>
-        <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-500/30 bg-amber-500/15 px-3 py-1 text-xs font-medium text-amber-400">
-          <span className="size-1.5 rounded-full bg-amber-400" aria-hidden="true" />
-          Geliştirmede — Aşama 4
+        <span className="inline-flex items-center gap-1.5 border border-[#1A1612] bg-surface-1 px-3 py-1 font-mono text-[10px] uppercase font-bold text-text-primary">
+          Geliştirmede — Aşama 6
         </span>
       </div>
     </Container>

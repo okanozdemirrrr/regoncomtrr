@@ -11,7 +11,7 @@ export function ContactSection() {
         <div className="mb-12">
           <div className="flex items-center gap-3">
             <span className="font-mono text-xs font-bold uppercase tracking-widest text-accent-ink">
-              {'// 06 · İLETİŞİM & KURULUM TALEBİ'}
+              {'// 04 · İLETİŞİM & DOĞRUDAN DESTEK'}
             </span>
             <span className="font-mono text-[10px] text-text-muted">
               [ DOĞRUDAN DESTEK HATTI ]
@@ -34,6 +34,17 @@ export function ContactSection() {
                 <p className="text-base sm:text-lg text-text-secondary leading-relaxed max-w-xl">
                   Restoranınız, kurye filonuz veya bayi ağınız için sistemi yerinde kuralım. Doğrudan teknik ekiple iletişime geçin, çalışma modelinizi birlikte değerlendirelim.
                 </p>
+              </Reveal>
+
+              <Reveal delay={0.15}>
+                <div className="border-l-2 border-accent-ink bg-surface-1 p-4 mt-4">
+                  <p className="font-mono text-xs uppercase font-bold text-accent-ink mb-1">
+                    FİYAT/HIZ VAADİ
+                  </p>
+                  <p className="text-sm text-text-primary">
+                    {siteConfig.priceSpeedPromise.selected}
+                  </p>
+                </div>
               </Reveal>
 
               <div className="pt-4 font-mono text-xs text-text-muted">

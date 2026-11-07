@@ -30,8 +30,16 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# env files (can opt-in for committing if needed)
+# env files — gerçek değer içerebilecek dosyalar asla commit edilmez
+.env
+.env.local
+.env.development
+.env.production
+.env.test
+.env.*.local
 .env*
+# Şablon: yalnızca değişken adları / yer tutucular; gerçek sır yok
+!.env.example
 
 # vercel
 .vercel

@@ -68,8 +68,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html
       lang="tr"
       className={`${bricolage.variable} ${jetbrains.variable} ${archivo.variable}`}
+      suppressHydrationWarning
     >
-      <body>
+      <body suppressHydrationWarning>
         <SmoothScrollProvider>
           <a href="#main-content" className="skip-link">
             {tr.a11y.skipToMain}

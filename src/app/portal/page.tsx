@@ -1,46 +1,97 @@
+import { redirect } from 'next/navigation'
 import { Container } from '@/components/ui/Container'
+import { getPortalContext } from '@/lib/portal'
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: 'Müşteri Girişi',
-  description: 'Regon Teknoloji müşteri portalı — aktivasyon koduyla giriş yapın.',
+  title: 'Müşteri Portalı',
+  description: 'Regon Teknoloji müşteri portalı.',
   robots: { index: false, follow: false },
 }
 
-/**
- * Müşteri Portal Sayfası — Aşama 3'te tam implementasyon yapılacak.
- * Şimdilik: yer tutucu sayfa.
- */
-export default function PortalPage() {
+/** Oturum/cookie bağımlı — anlık navigasyon doğrulaması yok */
+export const instant = false
+
+export default async function PortalPage() {
+  const session = await getPortalContext()
+  if (!session) redirect('/portal/giris')
+
   return (
-    <Container className="flex min-h-[60dvh] flex-col items-center justify-center py-16 text-center">
-      <div className="rounded-2xl border border-white/8 bg-surface-1 p-10 sm:p-14">
-        <div className="mb-6 inline-flex size-16 items-center justify-center rounded-2xl bg-accent/15">
-          <svg
-            className="size-8 text-accent"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            strokeWidth={1.5}
-            aria-hidden="true"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M15.75 5.25a3 3 0 0 1 3 3m3 0a6 6 0 0 1-7.029 5.912c-.563-.097-1.159.026-1.563.43L10.5 17.25H8.25v2.25H6v2.25H2.25v-2.818c0-.597.237-1.17.659-1.591l6.499-6.499c.404-.404.527-1 .43-1.563A6 6 0 0 1 18.75 8.25Z"
-            />
-          </svg>
+    <Container className="py-12">
+      <div className="border-2 border-[#1A1612] bg-surface-paper p-8 sm:p-10 shadow-[4px_4px_0px_#1A1612]">
+        <div className="flex flex-wrap items-center justify-between gap-4 mb-8 border-b border-dashed border-[#1A1612]/30 pb-4">
+          <div>
+            <p className="font-mono text-[10px] uppercase tracking-widest text-accent-ink mb-1">
+              {'// OPERASYON MASASI'}
+            </p>
+            <h1 className="font-display text-3xl font-black text-text-primary">Müşteri Portalı</h1>
+            <p className="font-mono text-xs text-text-secondary mt-1">
+              İşletme: {session.tenantName}
+            </p>
+          </div>
+          <form action="/api/portal/logout" method="POST">
+            <button
+              type="submit"
+              className="border border-[#1A1612] bg-[#FAF8F3] px-4 py-2 font-mono text-xs uppercase font-bold text-text-primary hover:bg-[#1A1612] hover:text-[#FAF8F3] transition-colors min-h-[44px]"
+            >
+              Çıkış Yap
+            </button>
+          </form>
         </div>
 
-        <h1 className="mb-3 text-2xl font-bold text-text-primary">Müşteri Girişi</h1>
-        <p className="mb-6 text-sm text-text-secondary">
-          Müşteri portalı yakında aktif olacak. Aktivasyon kodunuzla sisteme giriş yapabileceksiniz.
-        </p>
+        <div className="space-y-6">
+          <div className="border border-[#1A1612]/20 bg-surface-1 p-6">
+            <p className="font-mono text-xs uppercase text-accent-ink font-bold mb-3">
+              Bağlı projeler
+            </p>
+            {session.projects.length === 0 ? (
+              <p className="font-mono text-sm text-text-muted">Bağlı proje yok</p>
+            ) : (
+              <ul className="space-y-2">
+                {session.projects.map((project, index) => (
+                  <li
+                    key={project.id}
+                    className={
+                      index === session.projects.length - 1
+                        ? 'flex items-center justify-between'
+                        : 'flex items-center justify-between border-b border-dashed border-[#1A1612]/20 pb-2'
+                    }
+                  >
+                    <span className="font-mono text-sm text-text-primary">{project.name}</span>
+                    <span className="font-mono text-[10px] text-accent-ink">Aktif</span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
 
-        <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-500/30 bg-amber-500/15 px-3 py-1 text-xs font-medium text-amber-400">
-          <span className="size-1.5 rounded-full bg-amber-400" aria-hidden="true" />
-          Geliştirmede — Aşama 3
-        </span>
+          <div className="border border-[#1A1612]/20 bg-surface-1 p-6">
+            <p className="font-mono text-xs uppercase text-accent-ink font-bold mb-3">
+              Açık talepler
+            </p>
+            <p className="font-display text-4xl font-black text-text-primary">0</p>
+            <p className="font-mono text-[10px] text-text-muted mt-1">Henüz talep yok</p>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <button
+              type="button"
+              disabled
+              className="border border-[#1A1612]/30 bg-surface-2 px-4 py-3 font-mono text-xs uppercase font-bold text-text-muted cursor-not-allowed min-h-[44px] flex items-center justify-center gap-2"
+            >
+              <span>Yeni geri bildirim</span>
+              <span className="text-[10px] bg-[#1A1612]/10 px-2 py-0.5">Yakında</span>
+            </button>
+            <button
+              type="button"
+              disabled
+              className="border border-[#1A1612]/30 bg-surface-2 px-4 py-3 font-mono text-xs uppercase font-bold text-text-muted cursor-not-allowed min-h-[44px] flex items-center justify-center gap-2"
+            >
+              <span>Taleplerim</span>
+              <span className="text-[10px] bg-[#1A1612]/10 px-2 py-0.5">Yakında</span>
+            </button>
+          </div>
+        </div>
       </div>
     </Container>
   )

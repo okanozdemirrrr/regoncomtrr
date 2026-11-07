@@ -6,8 +6,8 @@ import Lenis from 'lenis'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { prefersReducedMotion } from '@/lib/animations'
+import { LENIS_RESIZE_EVENT } from '@/lib/lenis-bridge'
 
-// SSR güvenli ScrollTrigger kaydı
 if (typeof window !== 'undefined') {
   gsap.registerPlugin(ScrollTrigger)
 }
@@ -21,7 +21,6 @@ export function SmoothScrollProvider({ children }: SmoothScrollProviderProps) {
   const lenisRef = useRef<Lenis | null>(null)
 
   useEffect(() => {
-    // prefers-reduced-motion açıksa Lenis başlatılmaz, tarayıcının doğal davranışı korunur
     if (prefersReducedMotion()) {
       ScrollTrigger.refresh()
       return
@@ -38,26 +37,29 @@ export function SmoothScrollProvider({ children }: SmoothScrollProviderProps) {
     })
 
     lenisRef.current = lenis
-
-    // Lenis scroll olayını GSAP ScrollTrigger ile senkronize et
     lenis.on('scroll', ScrollTrigger.update)
 
-    // GSAP Ticker ile Lenis render döngüsünü bağla
     const updateTicker = (time: number) => {
       lenis.raf(time * 1000)
     }
-
     gsap.ticker.add(updateTicker)
     gsap.ticker.lagSmoothing(0)
 
-    // Sayfa boyutu değişiminde ScrollTrigger yenile
-    const handleResize = () => {
+    const syncAfterLayout = () => {
+      // ScrollTrigger.refresh sonrası Lenis ölçülerini yenile; kaydırma konumunu koru
+      const y = lenis.scroll
       ScrollTrigger.refresh()
+      lenis.resize()
+      lenis.scrollTo(y, { immediate: true })
     }
+
+    const handleResize = () => syncAfterLayout()
     window.addEventListener('resize', handleResize)
+    window.addEventListener(LENIS_RESIZE_EVENT, syncAfterLayout)
 
     return () => {
       window.removeEventListener('resize', handleResize)
+      window.removeEventListener(LENIS_RESIZE_EVENT, syncAfterLayout)
       gsap.ticker.remove(updateTicker)
       lenis.destroy()
       lenisRef.current = null
@@ -65,13 +67,13 @@ export function SmoothScrollProvider({ children }: SmoothScrollProviderProps) {
     }
   }, [])
 
-  // Rota değişiminde ScrollTrigger ve sayfa başı senkronizasyonu
   useEffect(() => {
     if (lenisRef.current) {
       lenisRef.current.scrollTo(0, { immediate: true })
     }
     const timer = setTimeout(() => {
       ScrollTrigger.refresh()
+      lenisRef.current?.resize()
     }, 100)
     return () => clearTimeout(timer)
   }, [pathname])

@@ -24,6 +24,8 @@ export interface Project {
   stepLabel: string
   orderJourneyState: string
   tagline: string
+  keyBenefit?: string
+  keyTags?: string[]
   targetAudience: string
   problemSolved: string
   descriptionShort: string
