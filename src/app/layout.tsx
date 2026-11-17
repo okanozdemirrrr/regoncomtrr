@@ -4,6 +4,7 @@ import './globals.css'
 import { Navbar } from '@/components/layout/Navbar'
 import { Footer } from '@/components/layout/Footer'
 import { SmoothScrollProvider } from '@/components/providers/SmoothScrollProvider'
+import { SCROLL_BUILD_PREPAINT_SCRIPT } from '@/lib/scroll-build'
 import tr from '@/i18n/tr'
 
 /* Bricolage Grotesque — karakterli ağır başlık fontu */
@@ -70,6 +71,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       className={`${bricolage.variable} ${jetbrains.variable} ${archivo.variable}`}
       suppressHydrationWarning
     >
+      <head>
+        {/* Scroll-build: hydration öncesi iskelet görünümü (flaş önleme) */}
+        <script dangerouslySetInnerHTML={{ __html: SCROLL_BUILD_PREPAINT_SCRIPT }} />
+      </head>
       <body suppressHydrationWarning>
         <SmoothScrollProvider>
           <a href="#main-content" className="skip-link">

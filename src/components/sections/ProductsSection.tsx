@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react'
 import { Container } from '@/components/ui/Container'
-import { PhotoSlot } from '@/components/ui/PhotoSlot'
 import { ProductDetailDrawer } from '@/components/ui/ProductDetailDrawer'
 import { projects } from '@/content/projects'
 import type { Project } from '@/types/project'
@@ -43,16 +42,22 @@ export function ProductsSection() {
   }
 
   return (
-    <section id="urunler" className="relative py-12 sm:py-16 border-b border-[#1A1612]/20 bg-background">
+    <section id="urunler" className="build-section relative py-12 sm:py-16 border-b border-[#1A1612]/20 bg-background">
       <Container>
         {/* Bölüm Başlığı */}
         <div className="mb-8 border-b border-[#1A1612] pb-4">
           <div className="flex items-center justify-between gap-4">
             <div>
-              <p className="font-mono text-xs uppercase tracking-widest text-accent-ink font-bold mb-1">
+              <p
+                data-build-delay="0"
+                className="build-element font-mono text-xs uppercase tracking-widest text-accent-ink font-bold mb-1"
+              >
                 {'// 01 · ÜRÜNLERİMİZ'}
               </p>
-              <h2 className="font-display text-2xl sm:text-3xl lg:text-4xl font-black tracking-tight text-text-primary">
+              <h2
+                data-build-delay="100"
+                className="build-element build-typewriter font-display text-2xl sm:text-3xl lg:text-4xl font-black tracking-tight text-text-primary"
+              >
                 Dört bağımsız sistem, tek operasyonel güç.
               </h2>
             </div>
@@ -79,8 +84,10 @@ export function ProductsSection() {
             return (
               <div
                 key={project.slug}
+                data-build-delay={250 + idx * 120}
+                data-build-duration="1000"
                 className={cn(
-                  'group flex flex-col justify-between border bg-surface-paper transition-all duration-200',
+                  'build-element group flex flex-col justify-between border bg-surface-paper transition-all duration-200',
                   isStar
                     ? 'border-2 border-[#1A1612] shadow-[4px_4px_0px_#1A1612] bg-[#FAF8F3]'
                     : 'border-[#1A1612]/30 shadow-[2px_2px_0px_#1A1612]/20 hover:border-[#1A1612]',
@@ -129,15 +136,6 @@ export function ProductsSection() {
                         {tag}
                       </span>
                     ))}
-                  </div>
-
-                  {/* PhotoSlot Görsel Alanı */}
-                  <div className="pt-2">
-                    <PhotoSlot
-                      no={project.heroSlotNo}
-                      ratio={project.slug === 'regon-market' ? '16/10' : '16/10'}
-                      caption={`// ${project.name} Arayüzü`}
-                    />
                   </div>
                 </div>
 

@@ -1,5 +1,4 @@
 import type { Project } from '@/types/project'
-import { PhotoSlot } from '@/components/ui/PhotoSlot'
 import { ProjectIcon } from '@/components/ui/Icons'
 
 interface ProductDetailProps {
@@ -107,22 +106,6 @@ export function ProductDetail({ project, showHeader = false }: ProductDetailProp
                 </p>
               )}
             </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Ekran Görüntüleri ve Fotoğraf Slotları */}
-      <div className="space-y-3 pt-4 border-t border-dashed border-[#1A1612]/30">
-        <p className="font-mono text-xs uppercase font-bold text-text-secondary">
-          {'// EKRAN GÖRÜNTÜLERİ VE MOBİL ARAYÜZLER'}
-        </p>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          {project.detailSlotNos.map((slotNo) => (
-            <PhotoSlot
-              key={slotNo}
-              no={slotNo}
-              caption={`// Slot ${String(slotNo).padStart(2, '0')}`}
-            />
           ))}
         </div>
       </div>

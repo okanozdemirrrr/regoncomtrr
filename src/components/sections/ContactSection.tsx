@@ -6,10 +6,10 @@ export function ContactSection() {
   const { email, phone, address, supportEmail } = siteConfig.contact
 
   return (
-    <section id="iletisim" className="py-20 sm:py-28 bg-background">
+    <section id="iletisim" className="build-section py-20 sm:py-28 bg-background">
       <Container>
         <div className="mb-12">
-          <div className="flex items-center gap-3">
+          <div className="build-element flex items-center gap-3">
             <span className="font-mono text-xs font-bold uppercase tracking-widest text-accent-ink">
               {'// 04 · İLETİŞİM & DOĞRUDAN DESTEK'}
             </span>
@@ -25,19 +25,19 @@ export function ContactSection() {
             {/* Sol Kolon: Başlık ve Açıklama */}
             <div className="lg:col-span-7 space-y-4">
               <Reveal>
-                <h2 className="font-display text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight text-text-primary">
+                <h2 data-build-delay="100" className="build-element build-typewriter font-display text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight text-text-primary">
                   Sahanız için demo veya kurulum planlayalım.
                 </h2>
               </Reveal>
 
               <Reveal delay={0.1}>
-                <p className="text-base sm:text-lg text-text-secondary leading-relaxed max-w-xl">
+                <p data-build-delay="200" className="build-element text-base sm:text-lg text-text-secondary leading-relaxed max-w-xl">
                   Restoranınız, kurye filonuz veya bayi ağınız için sistemi yerinde kuralım. Doğrudan teknik ekiple iletişime geçin, çalışma modelinizi birlikte değerlendirelim.
                 </p>
               </Reveal>
 
               <Reveal delay={0.15}>
-                <div className="border-l-2 border-accent-ink bg-surface-1 p-4 mt-4">
+                <div data-build-delay="300" className="build-element border-l-2 border-accent-ink bg-surface-1 p-4 mt-4">
                   <p className="font-mono text-xs uppercase font-bold text-accent-ink mb-1">
                     FİYAT/HIZ VAADİ
                   </p>
@@ -54,7 +54,7 @@ export function ContactSection() {
 
             {/* Sağ Kolon: İletişim Bağlantıları (Config tabanlı, hardcoded değil) */}
             <div className="lg:col-span-5 space-y-3 font-mono text-xs">
-              <div className="border border-[#1A1612] bg-[#FAF8F3] p-4 space-y-1">
+              <div data-build-delay="300" className="build-element border border-[#1A1612] bg-[#FAF8F3] p-4 space-y-1">
                 <span className="text-[10px] uppercase text-text-muted block">KURULUM & GENEL İLETİŞİM</span>
                 <a
                   href={`mailto:${email}`}
@@ -65,7 +65,7 @@ export function ContactSection() {
                 </a>
               </div>
 
-              <div className="border border-[#1A1612] bg-[#FAF8F3] p-4 space-y-1">
+              <div data-build-delay="400" className="build-element border border-[#1A1612] bg-[#FAF8F3] p-4 space-y-1">
                 <span className="text-[10px] uppercase text-text-muted block">TELEFON DESTEK HATTI</span>
                 <a
                   href={`tel:${phone.replace(/\s+/g, '')}`}
@@ -76,7 +76,7 @@ export function ContactSection() {
                 </a>
               </div>
 
-              <div className="border border-[#1A1612] bg-[#FAF8F3] p-4 space-y-1">
+              <div data-build-delay="500" className="build-element border border-[#1A1612] bg-[#FAF8F3] p-4 space-y-1">
                 <span className="text-[10px] uppercase text-text-muted block">TEKNİK DESTEK & OPERASYON</span>
                 <a
                   href={`mailto:${supportEmail}`}
@@ -87,7 +87,7 @@ export function ContactSection() {
                 </a>
               </div>
 
-              <div className="border border-[#1A1612]/30 bg-surface-1 p-4 space-y-1 text-text-secondary">
+              <div data-build-delay="600" className="build-element border border-[#1A1612]/30 bg-surface-1 p-4 space-y-1 text-text-secondary">
                 <span className="text-[10px] uppercase text-text-muted block">SAHA MERKEZİ</span>
                 <p className="font-semibold text-text-primary">{address}</p>
               </div>

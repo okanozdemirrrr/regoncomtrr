@@ -30,6 +30,15 @@ function shouldSkipRevealMotion(): boolean {
   return false
 }
 
+/** Scroll-build işaretli elemanlarda GSAP opacity animasyonu wireframe'i gizler → atla */
+function isBuildAnimated(el: Element): boolean {
+  return (
+    el.classList.contains('build-element') ||
+    Boolean(el.querySelector('.build-element')) ||
+    Boolean(el.closest('.build-element'))
+  )
+}
+
 export function Reveal({
   children,
   delay = 0,
@@ -41,7 +50,7 @@ export function Reveal({
 
   useEffect(() => {
     const el = ref.current
-    if (!el || shouldSkipRevealMotion()) return
+    if (!el || shouldSkipRevealMotion() || isBuildAnimated(el)) return
 
     const ctx = gsap.context(() => {
       gsap.fromTo(
@@ -88,7 +97,7 @@ export function SplitLines({ lines, className, lineClassName, delay = 0 }: Split
 
   useEffect(() => {
     const el = containerRef.current
-    if (!el || prefersReducedMotion()) return
+    if (!el || prefersReducedMotion() || isBuildAnimated(el)) return
 
     const lineElements = el.querySelectorAll('.split-line-inner')
     if (!lineElements.length) return

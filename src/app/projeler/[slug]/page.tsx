@@ -3,7 +3,6 @@ import Link from 'next/link'
 import { getProjectBySlug, projects } from '@/content/projects'
 import { Container } from '@/components/ui/Container'
 import { Badge } from '@/components/ui/Badge'
-import { PhotoSlot } from '@/components/ui/PhotoSlot'
 import { ProductDetail } from '@/components/ui/ProductDetail'
 import { siteConfig } from '@/content/siteConfig'
 import type { Metadata } from 'next'
@@ -99,14 +98,6 @@ export default async function ProjectDetailPage({ params }: Props) {
                   {project.tagline}
                 </p>
               </div>
-            </div>
-
-            {/* Ana Hero Görseli */}
-            <div className="space-y-2">
-              <PhotoSlot
-                no={project.heroSlotNo}
-                caption={`// Slot ${String(project.heroSlotNo).padStart(2, '0')}: ${project.name} Ana Operasyon Görseli`}
-              />
             </div>
 
             {/* ProductDetail Component (Reusable) */}

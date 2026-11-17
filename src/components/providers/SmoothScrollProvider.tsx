@@ -6,7 +6,7 @@ import Lenis from 'lenis'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { prefersReducedMotion } from '@/lib/animations'
-import { LENIS_RESIZE_EVENT } from '@/lib/lenis-bridge'
+import { LENIS_RESIZE_EVENT, LENIS_START_EVENT, LENIS_STOP_EVENT } from '@/lib/lenis-bridge'
 
 if (typeof window !== 'undefined') {
   gsap.registerPlugin(ScrollTrigger)
@@ -54,12 +54,18 @@ export function SmoothScrollProvider({ children }: SmoothScrollProviderProps) {
     }
 
     const handleResize = () => syncAfterLayout()
+    const handleStop = () => lenis.stop()
+    const handleStart = () => lenis.start()
     window.addEventListener('resize', handleResize)
     window.addEventListener(LENIS_RESIZE_EVENT, syncAfterLayout)
+    window.addEventListener(LENIS_STOP_EVENT, handleStop)
+    window.addEventListener(LENIS_START_EVENT, handleStart)
 
     return () => {
       window.removeEventListener('resize', handleResize)
       window.removeEventListener(LENIS_RESIZE_EVENT, syncAfterLayout)
+      window.removeEventListener(LENIS_STOP_EVENT, handleStop)
+      window.removeEventListener(LENIS_START_EVENT, handleStart)
       gsap.ticker.remove(updateTicker)
       lenis.destroy()
       lenisRef.current = null

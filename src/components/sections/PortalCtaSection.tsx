@@ -4,7 +4,7 @@ import { Reveal } from '@/components/animations/MotionComponents'
 
 export function PortalCtaSection() {
   return (
-    <section className="py-16 sm:py-24 border-b border-[#1A1612]/20 bg-surface-1">
+    <section className="build-section py-16 sm:py-24 border-b border-[#1A1612]/20 bg-surface-1">
       <Container>
         <div className="border-2 border-[#1A1612] bg-surface-paper p-8 sm:p-12 lg:p-16 relative overflow-hidden">
           {/* Çizgisel su damgası */}
@@ -14,19 +14,19 @@ export function PortalCtaSection() {
 
           <div className="grid grid-cols-1 gap-8 lg:grid-cols-12 lg:items-center relative z-10">
             <div className="lg:col-span-8 space-y-4">
-              <div className="inline-flex items-center gap-2 border border-[#1A1612] bg-[#FAF8F3] px-2.5 py-1 font-mono text-[11px] text-accent-ink font-bold">
+              <div className="build-element inline-flex items-center gap-2 border border-[#1A1612] bg-[#FAF8F3] px-2.5 py-1 font-mono text-[11px] text-accent-ink font-bold">
                 <span className="size-2 rounded-full bg-accent" />
                 <span>{'// 05 · MÜŞTERİ GERİ BİLDİRİM & TAKİP PORTALI'}</span>
               </div>
 
               <Reveal>
-                <h2 className="font-display text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight text-text-primary">
+                <h2 data-build-delay="100" className="build-element build-typewriter font-display text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight text-text-primary">
                   Regon müşterisi misiniz?
                 </h2>
               </Reveal>
 
               <Reveal delay={0.1}>
-                <p className="text-base sm:text-lg text-text-secondary leading-relaxed max-w-2xl">
+                <p data-build-delay="250" className="build-element text-base sm:text-lg text-text-secondary leading-relaxed max-w-2xl">
                   İşletmenize özel verilen aktivasyon kodunuzla sisteme giriş yapın. Yeni özellik isteği gönderin, sahada karşılaştığınız hata bildirimlerini iletin ve çözüm sürecini canlı takip edin.
                 </p>
               </Reveal>
@@ -36,7 +36,8 @@ export function PortalCtaSection() {
               <Reveal delay={0.2}>
                 <Link
                   href="/portal/giris"
-                  className="flex h-12 w-full items-center justify-between border border-[#1A1612] bg-[#1A1612] px-6 uppercase font-bold text-[#FAF8F3] hover:bg-accent hover:border-accent hover:text-[#100F0D] transition-colors shadow-[2px_2px_0px_#1A1612]"
+                  data-build-delay="450"
+                  className="build-element build-pop flex h-12 w-full items-center justify-between border border-[#1A1612] bg-[#1A1612] px-6 uppercase font-bold text-[#FAF8F3] hover:bg-accent hover:border-accent hover:text-[#100F0D] transition-colors shadow-[2px_2px_0px_#1A1612]"
                 >
                   <span>Aktivasyon Koduyla Gir</span>
                   <span>→</span>

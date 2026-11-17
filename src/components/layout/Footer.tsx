@@ -2,7 +2,8 @@ import { Container } from '@/components/ui/Container'
 import { siteConfig } from '@/content/siteConfig'
 import tr from '@/i18n/tr'
 
-const currentYear = new Date().getFullYear()
+/** Cache Components ile uyumlu sabit yıl (render sırasında Date kullanma) */
+const COPYRIGHT_YEAR = 2026
 
 const productLinks = [
   { href: '#pos', label: 'Regon POS' },
@@ -88,7 +89,7 @@ export function Footer() {
             </div>
 
             <p className="pt-2 text-[11px] text-text-muted">
-              © {currentYear} {siteConfig.company.name}. {tr.footer.rights}
+              © {COPYRIGHT_YEAR} {siteConfig.company.name}. {tr.footer.rights}
             </p>
           </div>
         </div>

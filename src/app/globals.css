@@ -150,3 +150,145 @@ img { max-width: 100%; height: auto; }
 ::-webkit-scrollbar-thumb:hover {
   background: var(--color-text-muted);
 }
+
+/* ============================================================
+   SCROLL-TRIGGERED BUILD ANIMATION  (src/lib/scroll-build.ts)
+   wireframe → filling → complete
+   - Mevcut GSAP animasyonlarının ÜSTÜNE çalışır (inline stilleri
+     ezmek için gerekli yerlerde !important kullanılır).
+   - Çizgiler border yerine outline ile çizilir → layout kayması yok.
+   - prefers-reduced-motion: reduce iken bu blok hiç uygulanmaz.
+   - html.build-pending: hydration öncesi (inline script) iskelet görünümü.
+   ============================================================ */
+
+@layer components {
+  .build-element {
+    --build-progress: 0; /* JS tarafından 0-1 arası güncellenir */
+    position: relative;
+  }
+  .bt-word { white-space: nowrap; }
+}
+
+/* ─── Hero: hızlı giriş (wireframe / dashed border YOK) ─── */
+@keyframes hero-enter {
+  from {
+    opacity: 0;
+    translate: 0 12px;
+  }
+  to {
+    opacity: 1;
+    translate: 0 0;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .hero-enter > * {
+    animation: hero-enter 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+  .hero-enter > *:nth-child(1) { animation-delay: 0.04s; }
+  .hero-enter > *:nth-child(2) { animation-delay: 0.12s; }
+  .hero-enter > *:nth-child(3) { animation-delay: 0.22s; }
+  .hero-enter > *:nth-child(4) { animation-delay: 0.32s; }
+  .hero-enter > *:nth-child(5) { animation-delay: 0.42s; }
+
+  /* Scroll-build: sadece hero ALTI section'lar */
+  .build-section {
+    --build-line-rgb: 45 212 191; /* #2DD4BF */
+    --build-line-alpha: 0.4;
+  }
+
+  /* ─── Aşama 1: Wireframe (iskelet) — sadece masaüstü (full) ─── */
+  html:not([data-build-mode='lite']) .build-element[data-build-stage='wireframe'],
+  html:not([data-build-mode='lite']) .build-element[data-build-stage='filling'],
+  html.build-pending:not([data-build-mode='lite']) .build-element:not([data-build-stage]) {
+    outline: 1px dashed rgb(var(--build-line-rgb) / var(--build-line-alpha));
+    outline-offset: -1px;
+    isolation: isolate;
+    will-change: transform, opacity;
+  }
+
+  .build-element[data-build-stage='wireframe'],
+  html.build-pending .build-element:not([data-build-stage]) {
+    color: transparent !important;
+  }
+  .build-element:not(.build-typewriter, .build-logo)[data-build-stage='wireframe'] > *,
+  html.build-pending .build-element:not([data-build-stage]) > * {
+    opacity: 0 !important;
+  }
+
+  /* ─── Aşama 2: Dolma (fill-in) ─── */
+  html:not([data-build-mode='lite']) .build-element[data-build-stage='filling'] {
+    outline-color: rgb(
+      var(--build-line-rgb) /
+        calc(var(--build-line-alpha) * (1 - var(--build-progress) * var(--build-progress)))
+    );
+  }
+  html:not([data-build-mode='lite'])
+    .build-element:not(.build-typewriter, .build-logo)[data-build-stage='filling']
+    > * {
+    opacity: clamp(0, calc((var(--build-progress) - 0.25) * 1.6), 1) !important;
+    translate: 0 calc((1 - var(--build-progress)) * 6px);
+  }
+  /* Mobil (lite): sadece basit fade-in */
+  html[data-build-mode='lite']
+    .build-element:not(.build-typewriter, .build-logo)[data-build-stage='filling']
+    > * {
+    opacity: var(--build-progress) !important;
+  }
+  html[data-build-mode='lite'] .build-element[data-build-stage='wireframe'],
+  html[data-build-mode='lite'] .build-element[data-build-stage='filling'] {
+    outline: none;
+  }
+
+  html:not([data-build-mode='lite']) .build-element[data-build-stage='wireframe'],
+  html:not([data-build-mode='lite']) .build-element[data-build-stage='filling'],
+  html.build-pending:not([data-build-mode='lite']) .build-element:not([data-build-stage]) {
+    background-color: transparent !important;
+    box-shadow: none !important;
+    border-color: transparent !important;
+  }
+
+  html:not([data-build-mode='lite']) .build-element[data-build-stage='filling']::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background-color: var(--build-bg, transparent);
+    clip-path: inset(calc((1 - clamp(0, calc(var(--build-progress) * 1.6), 1)) * 100%) 0 0 0);
+  }
+
+  html:not([data-build-mode='lite']) .build-media[data-build-stage='wireframe'] > * {
+    clip-path: inset(0 100% 0 0);
+  }
+  html:not([data-build-mode='lite']) .build-media[data-build-stage='filling'] > * {
+    opacity: 1 !important;
+    translate: none;
+    clip-path: inset(0 calc((1 - var(--build-progress)) * 100%) 0 0);
+  }
+
+  .build-element.build-pop:not(.build-logo)[data-build-stage='filling'] > * {
+    opacity: clamp(0, calc((var(--build-progress) - 0.55) * 2.5), 1) !important;
+  }
+
+  /* ─── Daktilo (typewriter) ─── */
+  .bt-char {
+    opacity: clamp(0, calc(var(--bt-typed, 99999) - var(--i, 0)), 1);
+  }
+  .build-typewriter[data-build-stage='filling'] .bt-caret {
+    box-shadow: 2px 0 0 #2dd4bf;
+  }
+  .build-typewriter[data-build-stage='wireframe'] .bt-fade {
+    opacity: 0;
+  }
+  .build-typewriter[data-build-stage='filling'] .bt-fade {
+    opacity: var(--build-progress);
+  }
+
+  .build-element[data-build-settling] {
+    transition:
+      border-color 0.45s ease,
+      box-shadow 0.45s ease,
+      background-color 0.45s ease;
+  }
+}

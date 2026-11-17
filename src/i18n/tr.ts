@@ -7,8 +7,8 @@ const tr = {
   meta: {
     siteName: 'Regon Teknoloji',
     siteDescription:
-      'Regon Teknoloji (eski adıyla Mergen Teknoloji) — Türkiye\'deki restoranlar, kurye filolarını yöneten işletmeler ve bayi ağları için sipariş, kurye ve dağıtım yazılımları.',
-    defaultTitle: 'Regon Teknoloji | Sipariş, Kurye ve Dağıtım Yazılımları',
+      'Regon Teknoloji (eski adıyla Mergen Teknoloji) — yazılım, donanım, yapay zekâ, sensör ve otomasyon: işletmelerin ve bireylerin gerçek sorunlarına çözüm üreten ürün ve araştırma ekibi.',
+    defaultTitle: 'Regon Teknoloji | Ürün ve Araştırma',
   },
   nav: {
     home: 'Ana Sayfa',
@@ -20,9 +20,9 @@ const tr = {
     menuClose: 'Menüyü kapat',
   },
   hero: {
-    eyebrow: 'Restoran · Kurye · Bayi · Pazar Yeri',
-    headline: 'Telefon\nçalıyor.\nFiş\nbasılıyor.\nKurye\nyolda.',
-    sub: "Regon; Türkiye'deki restoranlar, kurye filolarını yöneten işletmeler ve bayi ağları için sipariş, kurye ve dağıtım yazılımları üretir.",
+    eyebrow: 'Yazılım · Donanım · Yapay Zekâ',
+    headline: 'Sorun varsa\nçözeriz.',
+    sub: 'Devre kartından yazılıma, yapay zekâdan sensör ve otomasyona — işletmelerin de bireylerin de gerçek sorunlarına çözüm üretiyoruz.',
     cta: 'Ürünleri incele',
     ctaPortal: 'Müşteri girişi',
   },

@@ -4,8 +4,8 @@ import { useEffect, useRef } from 'react'
 import Link from 'next/link'
 import type { Project } from '@/types/project'
 import { Badge } from '@/components/ui/Badge'
-import { PhotoSlot } from '@/components/ui/PhotoSlot'
 import { ProjectIcon } from '@/components/ui/Icons'
+import { startLenis, stopLenis } from '@/lib/lenis-bridge'
 
 interface ProductDetailDrawerProps {
   project: Project | null
@@ -14,6 +14,7 @@ interface ProductDetailDrawerProps {
 
 export function ProductDetailDrawer({ project, onClose }: ProductDetailDrawerProps) {
   const drawerRef = useRef<HTMLDivElement>(null)
+  const bodyRef = useRef<HTMLDivElement>(null)
 
   // ESC tuşu ve scroll kilidi yönetimi
   useEffect(() => {
@@ -25,18 +26,20 @@ export function ProductDetailDrawer({ project, onClose }: ProductDetailDrawerPro
       }
     }
 
-    // Scroll kilitle
+    // Arka plan scroll'unu kilitle; Lenis wheel yakalamasın
     const originalOverflow = document.body.style.overflow
     document.body.style.overflow = 'hidden'
+    stopLenis()
     window.addEventListener('keydown', handleKeyDown)
 
-    // Odaklanma
     if (drawerRef.current) {
       drawerRef.current.focus()
     }
+    bodyRef.current?.scrollTo({ top: 0 })
 
     return () => {
       document.body.style.overflow = originalOverflow
+      startLenis()
       window.removeEventListener('keydown', handleKeyDown)
     }
   }, [project, onClose])
@@ -54,11 +57,11 @@ export function ProductDetailDrawer({ project, onClose }: ProductDetailDrawerPro
       <div
         ref={drawerRef}
         tabIndex={-1}
-        className="relative flex h-full w-full max-w-2xl flex-col border-l border-[#1A1612] bg-[#FAF8F3] text-text-primary shadow-2xl focus:outline-none overflow-y-auto"
+        className="relative flex h-full w-full max-w-2xl flex-col overflow-hidden border-l border-[#1A1612] bg-[#FAF8F3] text-text-primary shadow-2xl focus:outline-none"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Sabit Üst Çubuk */}
-        <div className="sticky top-0 z-20 flex items-center justify-between border-b border-[#1A1612] bg-surface-paper px-6 py-4">
+        <div className="shrink-0 z-20 flex items-center justify-between border-b border-[#1A1612] bg-surface-paper px-6 py-4">
           <div className="flex items-center gap-3">
             <span className="font-mono text-xs font-bold text-accent-ink uppercase">
               {project.stepLabel}
@@ -77,8 +80,12 @@ export function ProductDetailDrawer({ project, onClose }: ProductDetailDrawerPro
           </button>
         </div>
 
-        {/* Gövde İçeriği */}
-        <div className="p-6 sm:p-8 space-y-8">
+        {/* Kaydırılabilir gövde — Lenis'in wheel yakalamasını engelle */}
+        <div
+          ref={bodyRef}
+          data-lenis-prevent
+          className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-6 sm:p-8 space-y-8"
+        >
           {/* Başlık ve Vaat */}
           <div className="space-y-2 border-b border-dashed border-[#1A1612]/30 pb-6">
             <h2 id="drawer-title" className="font-display text-3xl sm:text-4xl font-black text-text-primary">
@@ -174,22 +181,6 @@ export function ProductDetailDrawer({ project, onClose }: ProductDetailDrawerPro
                     </p>
                   )}
                 </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Ekran Görüntüleri ve Fotoğraf Slotları */}
-          <div className="space-y-3 pt-4 border-t border-dashed border-[#1A1612]/30">
-            <p className="font-mono text-xs uppercase font-bold text-text-secondary">
-              {'// EKRAN GÖRÜNTÜLERİ VE MOBİL ARAYÜZLER'}
-            </p>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {project.detailSlotNos.map((slotNo) => (
-                <PhotoSlot
-                  key={slotNo}
-                  no={slotNo}
-                  caption={`// Slot ${String(slotNo).padStart(2, '0')}`}
-                />
               ))}
             </div>
           </div>
