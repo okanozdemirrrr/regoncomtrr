@@ -1,4 +1,9 @@
-import { Container } from '@/components/ui/Container'
+import { connection } from 'next/server'
+import { AdminDashboard } from '@/components/admin/AdminDashboard'
+import { AdminLoginForm } from '@/components/admin/AdminLoginForm'
+import { isAdminAuthenticated } from '@/lib/admin-auth'
+import { listTicketsAdmin } from '@/lib/ticket-api'
+import { getSupabaseServerClient } from '@/lib/supabase/server'
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
@@ -7,21 +12,48 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 }
 
-/**
- * Admin paneli iskeleti — Supabase Auth koruması Aşama 6'da.
- */
-export default function AdminPage() {
-  return (
-    <Container className="flex min-h-[60dvh] flex-col items-center justify-center py-16 text-center">
-      <div className="border-2 border-[#1A1612] bg-surface-paper p-10 sm:p-14 shadow-[4px_4px_0px_#1A1612]">
-        <h1 className="mb-3 font-display text-2xl font-black text-text-primary">Yönetici Paneli</h1>
-        <p className="mb-6 font-mono text-xs text-text-secondary">
-          Bu alan yalnızca Regon yöneticileri içindir. Kimlik doğrulama Aşama 6&apos;da açılacak.
-        </p>
-        <span className="inline-flex items-center gap-1.5 border border-[#1A1612] bg-surface-1 px-3 py-1 font-mono text-[10px] uppercase font-bold text-text-primary">
-          Geliştirmede — Aşama 6
-        </span>
+/** Oturum/cookie bağımlı */
+export const instant = false
+
+export default async function AdminPage() {
+  await connection()
+  const authed = await isAdminAuthenticated()
+
+  if (!authed) {
+    return (
+      <div className="flex min-h-[100dvh] flex-col items-center justify-center px-4 py-12">
+        <div className="w-full max-w-sm border border-[#1A1612] bg-surface-paper p-8">
+          <p className="font-mono text-[10px] uppercase tracking-widest text-accent-ink mb-2">
+            {'// YETKİ'}
+          </p>
+          <h1 className="font-display text-2xl font-black mb-6">Yönetici girişi</h1>
+          <AdminLoginForm />
+        </div>
       </div>
-    </Container>
+    )
+  }
+
+  const supabase = getSupabaseServerClient()
+  const [{ data: projects }, tickets, codesRes] = await Promise.all([
+    supabase.from('projects').select('id, slug, name, status').order('name', { ascending: true }),
+    listTicketsAdmin({}),
+    supabase
+      .from('activation_codes')
+      .select('id, code, project_id, business_name, status, note, created_at, last_used_at')
+      .order('created_at', { ascending: false }),
+  ])
+
+  const projectMap = new Map((projects ?? []).map((p) => [p.id, p.name]))
+  const codes = (codesRes.data ?? []).map((row) => ({
+    ...row,
+    projectName: projectMap.get(row.project_id) ?? null,
+  }))
+
+  return (
+    <AdminDashboard
+      initialProjects={projects ?? []}
+      initialTickets={tickets}
+      initialCodes={codes}
+    />
   )
 }

@@ -1,14 +1,14 @@
 #!/usr/bin/env node
 /**
- * Aktivasyon kodu üret — kod bir kez yazdırılır.
- * npm run code:create -- --tenant <slug> --projects regon-pos,regon-kurye --expires 365d --note "..."
+ * Aktivasyon kodu üret (3 harf + 3 rakam).
+ * npm run code:create -- --project regon-pos --business "Demo Lokanta" [--code RGN104] [--note "..."]
  */
 
 import { createClient } from '@supabase/supabase-js'
 import {
   generateActivationCode,
-  getCodeHint,
-  hashActivationCode,
+  isValidActivationCodeFormat,
+  normalizeActivationCode,
 } from '../src/lib/activation-code'
 import { getEnv } from '../src/lib/env'
 import type { Database } from '../src/types/supabase'
@@ -24,22 +24,9 @@ function parseFlags(argv: string[]) {
   return flags
 }
 
-function parseExpires(expires?: string): Date | null {
-  if (!expires) return null
-  const match = expires.match(/^(\d+)([dhm])$/)
-  if (!match) return null
-  const value = parseInt(match[1], 10)
-  const unit = match[2]
-  const now = Date.now()
-  if (unit === 'd') return new Date(now + value * 86400000)
-  if (unit === 'h') return new Date(now + value * 3600000)
-  if (unit === 'm') return new Date(now + value * 60000)
-  return null
-}
-
 const flags = parseFlags(process.argv.slice(2))
-if (!flags.tenant) {
-  console.error('Hata: --tenant gerekli')
+if (!flags.project || !flags.business) {
+  console.error('Hata: --project ve --business gerekli')
   process.exit(1)
 }
 
@@ -49,67 +36,62 @@ async function main() {
     auth: { autoRefreshToken: false, persistSession: false },
   })
 
-  const { data: tenant, error: tenantError } = await supabase
-    .from('tenants')
-    .select('id, slug, is_active')
-    .eq('slug', flags.tenant)
+  const { data: project, error: projectError } = await supabase
+    .from('projects')
+    .select('id, slug, name')
+    .eq('slug', flags.project)
     .single()
 
-  if (tenantError || !tenant) {
-    console.error('Tenant bulunamadı')
-    process.exit(1)
-  }
-  if (!tenant.is_active) {
-    console.error('Tenant aktif değil')
+  if (projectError || !project) {
+    console.error('Proje bulunamadı')
     process.exit(1)
   }
 
-  const code = generateActivationCode()
-  const codeHash = hashActivationCode(code, env.ACTIVATION_PEPPER)
-  const codeHint = getCodeHint(code)
-  const expiresAt = parseExpires(flags.expires)
+  let code = flags.code
+    ? normalizeActivationCode(flags.code)
+    : generateActivationCode()
 
-  const { data: row, error } = await supabase
-    .from('activation_codes')
-    .insert({
-      tenant_id: tenant.id,
-      code_hash: codeHash,
-      code_hint: codeHint,
-      status: 'active',
-      expires_at: expiresAt ? expiresAt.toISOString() : null,
-      note: flags.note || null,
-    })
-    .select('id')
-    .single()
+  if (!isValidActivationCodeFormat(code)) {
+    console.error('Kod biçimi geçersiz (3 harf + 3 rakam)')
+    process.exit(1)
+  }
 
-  if (error || !row) {
+  for (let attempt = 0; attempt < 8; attempt++) {
+    const { data: row, error } = await supabase
+      .from('activation_codes')
+      .insert({
+        code,
+        project_id: project.id,
+        business_name: flags.business,
+        status: 'active',
+        note: flags.note || null,
+      })
+      .select('id, code')
+      .single()
+
+    if (!error && row) {
+      console.log('Aktivasyon kodu oluşturuldu:')
+      console.log(row.code)
+      console.log(`id: ${row.id}`)
+      console.log(`project: ${project.slug}`)
+      return
+    }
+
+    if (error?.code === '23505') {
+      if (flags.code) {
+        console.error('Bu kod zaten var')
+        process.exit(1)
+      }
+      code = generateActivationCode()
+      continue
+    }
+
     console.error('Kod oluşturulamadı:', error?.message)
     process.exit(1)
   }
 
-  if (flags.projects) {
-    for (const projectSlug of flags.projects.split(',').map((s) => s.trim()).filter(Boolean)) {
-      const { data: project } = await supabase
-        .from('projects')
-        .select('id')
-        .eq('slug', projectSlug)
-        .single()
-      if (project) {
-        await supabase.from('activation_code_projects').insert({
-          code_id: row.id,
-          project_id: project.id,
-        })
-      } else {
-        console.warn(`Uyarı: proje bulunamadı: ${projectSlug}`)
-      }
-    }
-  }
-
-  console.log('Aktivasyon kodu oluşturuldu. Bu kod bir daha gösterilmez:')
-  console.log(code)
-  console.log(`hint: ${codeHint}`)
-  console.log(`id:   ${row.id}`)
-  console.log(`expires: ${expiresAt ? expiresAt.toISOString() : 'yok'}`)
+  console.error('Benzersiz kod üretilemedi')
+  process.exit(1)
 }
 
 main()

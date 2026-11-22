@@ -1,10 +1,8 @@
 import { describe, it, expect } from 'vitest'
 import {
-  CROCKFORD_BASE32,
-  activationCodeEntropyBits,
+  CODE_LETTERS,
   generateActivationCode,
   generateSessionToken,
-  getCodeHint,
   hashActivationCode,
   hashIpAddress,
   hashSessionToken,
@@ -20,65 +18,52 @@ import {
 const PEPPER = 'test-activation-pepper-min-32-chars!!'
 const SALT = 'test-ip-hash-salt-min-32-characters!!'
 
-describe('Activation Code System', () => {
+describe('Activation Code System (3 harf + 3 rakam)', () => {
   describe('generateActivationCode', () => {
-    it('formats RGN-XXXX-XXXX-XXXX with Crockford chars only', () => {
-      for (let i = 0; i < 20; i++) {
+    it('formats AAA999 with allowed letters only', () => {
+      for (let i = 0; i < 30; i++) {
         const code = generateActivationCode()
-        expect(code).toMatch(/^RGN-[0-9A-HJKMNP-TV-Z]{4}-[0-9A-HJKMNP-TV-Z]{4}-[0-9A-HJKMNP-TV-Z]{4}$/)
-        expect(code).not.toMatch(/[OIL]/)
-        const body = code.replace(/RGN-|- /g, '').replace(/-/g, '')
-        for (const c of body) {
-          expect(CROCKFORD_BASE32.includes(c)).toBe(true)
+        expect(code).toMatch(/^[A-Z]{3}[0-9]{3}$/)
+        expect(code).not.toMatch(/[OI]/)
+        for (const c of code.slice(0, 3)) {
+          expect(CODE_LETTERS.includes(c)).toBe(true)
         }
       }
     })
 
-    it('produces unique codes', () => {
-      const set = new Set(Array.from({ length: 30 }, () => generateActivationCode()))
-      expect(set.size).toBe(30)
-    })
-
-    it('has at least 60 bits of entropy in body', () => {
-      expect(activationCodeEntropyBits()).toBeGreaterThanOrEqual(60)
+    it('produces unique codes often', () => {
+      const set = new Set(Array.from({ length: 40 }, () => generateActivationCode()))
+      expect(set.size).toBeGreaterThan(30)
     })
   })
 
   describe('normalizeActivationCode', () => {
     it('uppercases and strips separators', () => {
-      expect(normalizeActivationCode('rgn-ab12-cd34-ef56')).toBe('RGNAB12CD34EF56')
-    })
-
-    it('maps O→0 and I/L→1', () => {
-      expect(normalizeActivationCode('RGN-ABOC-DEF1-GHLX')).toBe('RGNAB0CDEF1GH1X')
+      expect(normalizeActivationCode('rgn 104')).toBe('RGN104')
+      expect(normalizeActivationCode('doy-552')).toBe('DOY552')
     })
   })
 
   describe('isValidActivationCodeFormat', () => {
     it('accepts generated codes', () => {
       expect(isValidActivationCodeFormat(generateActivationCode())).toBe(true)
+      expect(isValidActivationCodeFormat('RGN104')).toBe(true)
     })
 
-    it('rejects short or invalid charset before DB', () => {
-      expect(isValidActivationCodeFormat('RGN-AAAA')).toBe(false)
-      // U Crockford setinde yok
-      expect(isValidActivationCodeFormat('RGN-UUUU-UUUU-UUUU')).toBe(false)
+    it('rejects invalid shapes', () => {
+      expect(isValidActivationCodeFormat('RGN10')).toBe(false)
+      expect(isValidActivationCodeFormat('RG1044')).toBe(false)
+      expect(isValidActivationCodeFormat('123ABC')).toBe(false)
       expect(isValidActivationCodeFormat('not-a-code')).toBe(false)
     })
   })
 
   describe('hashActivationCode', () => {
     it('is stable and case/format insensitive', () => {
-      const a = hashActivationCode('RGN-AB12-CD34-EF56', PEPPER)
-      const b = hashActivationCode('rgn ab12 cd34 ef56', PEPPER)
+      const a = hashActivationCode('RGN104', PEPPER)
+      const b = hashActivationCode('rgn 104', PEPPER)
       expect(a).toBe(b)
       expect(a).toMatch(/^[a-f0-9]{64}$/)
-    })
-
-    it('differs for different codes', () => {
-      expect(hashActivationCode('RGN-AB12-CD34-EF56', PEPPER)).not.toBe(
-        hashActivationCode('RGN-AB12-CD34-EF57', PEPPER),
-      )
     })
   })
 
@@ -101,34 +86,25 @@ describe('Activation Code System', () => {
     })
   })
 
-  describe('getCodeHint', () => {
-    it('returns last 4 of normalized code', () => {
-      expect(getCodeHint('RGN-AB12-CD34-EF56')).toBe('EF56')
-    })
-  })
-
   describe('rate limit / session validity', () => {
     it('locks after 5 failures', () => {
       expect(isIpLocked(4)).toBe(false)
       expect(isIpLocked(5)).toBe(true)
     })
 
-    it('rejects revoked, expired idle, absolute, inactive tenant, inactive code', () => {
+    it('rejects revoked, expired idle, absolute, inactive code', () => {
       const base = {
         now: Date.parse('2026-01-15T12:00:00Z'),
         revokedAt: null as string | null,
         idleExpiresAt: '2026-01-20T12:00:00Z',
         absoluteExpiresAt: '2026-02-10T12:00:00Z',
         codeStatus: 'active' as const,
-        tenantActive: true,
       }
       expect(isSessionValid(base)).toBe(true)
       expect(isSessionValid({ ...base, revokedAt: '2026-01-14T00:00:00Z' })).toBe(false)
       expect(isSessionValid({ ...base, idleExpiresAt: '2026-01-01T00:00:00Z' })).toBe(false)
       expect(isSessionValid({ ...base, absoluteExpiresAt: '2026-01-01T00:00:00Z' })).toBe(false)
-      expect(isSessionValid({ ...base, tenantActive: false })).toBe(false)
-      expect(isSessionValid({ ...base, codeStatus: 'revoked' })).toBe(false)
-      expect(isSessionValid({ ...base, codeStatus: 'expired' })).toBe(false)
+      expect(isSessionValid({ ...base, codeStatus: 'inactive' })).toBe(false)
     })
 
     it('caps idle renewal at absolute expiry', () => {

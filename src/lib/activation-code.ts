@@ -1,11 +1,8 @@
 import { createHash, createHmac, randomBytes, timingSafeEqual } from 'crypto'
 
-/** Crockford Base32 — 0/O, 1/I/L karışmaz */
-export const CROCKFORD_BASE32 = '0123456789ABCDEFGHJKMNPQRSTVWXYZ'
-
-const CODE_BODY_LENGTH = 12
-/** 12 × 5 bit = 60 bit entropi */
-const REQUIRED_ENTROPY_BITS = CODE_BODY_LENGTH * 5
+/** Aktivasyon kodu harf seti — O/I karışmasın diye hariç */
+export const CODE_LETTERS = 'ABCDEFGHJKLMNPQRSTUVWXYZ'
+export const CODE_DIGITS = '0123456789'
 
 export type ActivationSecrets = {
   activationPepper: string
@@ -14,52 +11,39 @@ export type ActivationSecrets = {
 
 /**
  * Kriptografik rastgele aktivasyon kodu.
- * Format: RGN-XXXX-XXXX-XXXX (Crockford Base32 gövde).
- * Math.random kullanılmaz.
+ * Format: 3 harf + 3 rakam (örn. RGN104, DOY552).
  */
 export function generateActivationCode(): string {
-  const chars: string[] = []
-  while (chars.length < CODE_BODY_LENGTH) {
+  const letters: string[] = []
+  while (letters.length < 3) {
     const byte = randomBytes(1)[0]
-    // 256 % 32 === 0 → bias yok
-    if (byte < 256 - (256 % 32)) {
-      chars.push(CROCKFORD_BASE32[byte % 32])
+    if (byte < 256 - (256 % CODE_LETTERS.length)) {
+      letters.push(CODE_LETTERS[byte % CODE_LETTERS.length])
     }
   }
-  const body = chars.join('')
-  return `RGN-${body.slice(0, 4)}-${body.slice(4, 8)}-${body.slice(8, 12)}`
-}
-
-export function activationCodeEntropyBits(): number {
-  return REQUIRED_ENTROPY_BITS
+  const digits: string[] = []
+  while (digits.length < 3) {
+    const byte = randomBytes(1)[0]
+    if (byte < 256 - (256 % CODE_DIGITS.length)) {
+      digits.push(CODE_DIGITS[byte % CODE_DIGITS.length])
+    }
+  }
+  return `${letters.join('')}${digits.join('')}`
 }
 
 /**
- * Büyük harf, boşluk/tire temizliği, karışan karakter eşlemesi.
+ * Büyük/küçük harf duyarsız; boşluk ve tire temizlenir.
  */
 export function normalizeActivationCode(code: string): string {
-  const normalized = code.toUpperCase().replace(/[\s-]/g, '')
-  const charMap: Record<string, string> = {
-    O: '0',
-    I: '1',
-    L: '1',
-  }
-  return normalized
-    .split('')
-    .map((c) => charMap[c] || c)
-    .join('')
+  return code.toUpperCase().replace(/[\s-]/g, '')
 }
 
 /**
- * Normalize edilmiş gövde geçerli mi? (RGN + 12 Crockford karakteri)
- * Biçim hatalıysa DB'ye gitmeden reddetmek için.
+ * Geçerli biçim: tam olarak 3 harf + 3 rakam.
  */
 export function isValidActivationCodeFormat(code: string): boolean {
   const normalized = normalizeActivationCode(code)
-  if (!normalized.startsWith('RGN')) return false
-  const body = normalized.slice(3)
-  if (body.length !== CODE_BODY_LENGTH) return false
-  return [...body].every((c) => CROCKFORD_BASE32.includes(c))
+  return /^[A-Z]{3}[0-9]{3}$/.test(normalized)
 }
 
 export function hashActivationCode(code: string, pepper: string): string {
@@ -91,16 +75,19 @@ export function safeEqualHex(a: string, b: string): boolean {
   }
 }
 
-export function getCodeHint(code: string): string {
-  const normalized = normalizeActivationCode(code)
-  return normalized.slice(-4)
+export function safeEqualString(a: string, b: string): boolean {
+  const bufA = Buffer.from(a)
+  const bufB = Buffer.from(b)
+  if (bufA.length !== bufB.length) return false
+  return timingSafeEqual(bufA, bufB)
 }
 
-// ─── Saf rate-limit / oturum mantığı (test edilebilir) ───
+// ─── Rate-limit / oturum ───
 
 export const RATE_LIMIT = {
   maxFailedAttempts: 5,
-  windowMs: 15 * 60 * 1000,
+  /** 5 hatalı denemeden sonra kısa bekleme penceresi */
+  windowMs: 2 * 60 * 1000,
 } as const
 
 export const SESSION_TTL = {
@@ -120,13 +107,11 @@ export type SessionValidityInput = {
   revokedAt: string | null
   idleExpiresAt: string
   absoluteExpiresAt: string
-  codeStatus: 'active' | 'revoked' | 'expired' | null
-  tenantActive: boolean
+  codeStatus: 'active' | 'inactive' | null
 }
 
 export function isSessionValid(input: SessionValidityInput): boolean {
   if (input.revokedAt) return false
-  if (!input.tenantActive) return false
   if (input.codeStatus !== 'active') return false
   if (Date.parse(input.idleExpiresAt) <= input.now) return false
   if (Date.parse(input.absoluteExpiresAt) <= input.now) return false

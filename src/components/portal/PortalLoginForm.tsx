@@ -6,11 +6,16 @@ import { cn } from '@/lib/utils'
 
 function formatActivationInput(raw: string): string {
   const upper = raw.toUpperCase().replace(/[^A-Z0-9]/g, '')
-  let body = upper.startsWith('RGN') ? upper.slice(3) : upper
-  body = body.slice(0, 12)
-  const parts = [body.slice(0, 4), body.slice(4, 8), body.slice(8, 12)].filter(Boolean)
-  if (parts.length === 0) return upper.startsWith('RGN') ? 'RGN-' : ''
-  return `RGN-${parts.join('-')}`
+  const letters = upper.replace(/[^A-Z]/g, '').slice(0, 3)
+  const digits = upper.slice(letters.length).replace(/[^0-9]/g, '').slice(0, 3)
+  // Kullanıcı harf/rakam karışık yazarsa sırayı koru
+  const cleaned = upper.slice(0, 6)
+  if (/^[A-Z]{0,3}[0-9]{0,3}$/.test(cleaned) && cleaned.length <= 6) {
+    const l = cleaned.replace(/[0-9]/g, '').slice(0, 3)
+    const d = cleaned.replace(/[A-Z]/g, '').slice(0, 3)
+    return `${l}${d}`
+  }
+  return `${letters}${digits}`
 }
 
 interface PortalLoginFormProps {
@@ -68,25 +73,27 @@ export function PortalLoginForm({ initialError }: PortalLoginFormProps) {
           autoComplete="off"
           autoCapitalize="characters"
           spellCheck={false}
-          placeholder="RGN-XXXX-XXXX-XXXX"
+          placeholder="RGN104"
           value={code}
           onChange={(e) => setCode(formatActivationInput(e.target.value))}
           onPaste={(e) => {
             e.preventDefault()
-            const text = e.clipboardData.getData('text')
-            setCode(formatActivationInput(text))
+            setCode(formatActivationInput(e.clipboardData.getData('text')))
           }}
           aria-invalid={Boolean(error)}
           aria-describedby={error ? errorId : undefined}
           disabled={pending}
           required
+          maxLength={6}
           className={cn(
-            'w-full border-2 border-[#1A1612] bg-[#FAF8F3] px-4 py-3 font-mono text-sm text-text-primary',
-            'placeholder:text-text-muted/50 focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/20',
-            'uppercase min-h-[44px] disabled:opacity-60',
+            'w-full border border-[#1A1612] bg-[#FAF8F3] px-4 py-3 font-mono text-2xl tracking-[0.2em] text-text-primary text-center',
+            'placeholder:text-text-muted/40 focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/20',
+            'uppercase min-h-[52px] disabled:opacity-60',
           )}
         />
-        <p className="font-mono text-[10px] text-text-muted mt-1">Format: RGN-XXXX-XXXX-XXXX</p>
+        <p className="font-mono text-[10px] text-text-muted mt-2 text-center">
+          Format: 3 harf + 3 rakam (örn. RGN104)
+        </p>
       </div>
 
       {error ? (
@@ -101,10 +108,10 @@ export function PortalLoginForm({ initialError }: PortalLoginFormProps) {
 
       <button
         type="submit"
-        disabled={pending || code.length < 16}
+        disabled={pending || code.length !== 6}
         className={cn(
-          'w-full min-h-[44px] h-12 border-2 border-[#1A1612] bg-accent font-mono text-xs uppercase font-bold',
-          'text-[#100F0D] hover:bg-accent-hover transition-colors shadow-[2px_2px_0px_#1A1612]',
+          'w-full min-h-[44px] h-12 border border-[#1A1612] bg-accent font-mono text-xs uppercase font-bold',
+          'text-[#100F0D] hover:bg-accent-hover transition-colors',
           'disabled:opacity-60 disabled:cursor-not-allowed',
         )}
       >

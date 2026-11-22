@@ -6,6 +6,7 @@ const envSchema = z.object({
   SUPABASE_SERVICE_ROLE_KEY: z.string().min(1, 'SUPABASE_SERVICE_ROLE_KEY is required'),
   ACTIVATION_PEPPER: z.string().min(32, 'ACTIVATION_PEPPER must be at least 32 characters'),
   IP_HASH_SALT: z.string().min(32, 'IP_HASH_SALT must be at least 32 characters'),
+  ADMIN_PASSWORD: z.string().min(12, 'ADMIN_PASSWORD must be at least 12 characters'),
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
 })
 

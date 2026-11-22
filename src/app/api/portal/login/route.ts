@@ -5,11 +5,11 @@ import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import {
   generateSessionToken,
-  hashActivationCode,
   hashIpAddress,
   hashSessionToken,
   isIpLocked,
   isValidActivationCodeFormat,
+  normalizeActivationCode,
   RATE_LIMIT,
   SESSION_TTL,
 } from '@/lib/activation-code'
@@ -22,9 +22,8 @@ const loginSchema = z.object({
   code: z.string().min(1),
 })
 
-const GENERIC_INVALID =
-  'Kod geçersiz veya süresi dolmuş. Sorun devam ederse bize ulaşın.'
-const GENERIC_LOCKED = 'Çok fazla başarısız deneme. 15 dakika sonra tekrar deneyin.'
+const GENERIC_INVALID = 'Kod geçersiz veya pasif. Sorun devam ederse bize ulaşın.'
+const GENERIC_LOCKED = 'Çok fazla başarısız deneme. 2 dakika sonra tekrar deneyin.'
 const GENERIC_SERVER = 'Giriş hatası. Lütfen daha sonra tekrar deneyin.'
 const GENERIC_CSRF = 'İstek reddedildi. Sayfayı yenileyip tekrar deneyin.'
 
@@ -66,18 +65,7 @@ export async function POST(request: NextRequest) {
 
     const env = getEnv()
     const rawCode = await readCode(request)
-
-    if (!isValidActivationCodeFormat(rawCode)) {
-      // Biçim hatalı: DB'ye gitmeden genel hata (yine de rate-limit kaydı)
-      const ipHash = hashIpAddress(clientIp(request), env.IP_HASH_SALT)
-      const supabase = getSupabaseServerClient()
-      await supabase.from('portal_login_attempts').insert({
-        ip_hash: ipHash,
-        success: false,
-      })
-      return fail(request, GENERIC_INVALID, 400)
-    }
-
+    const code = normalizeActivationCode(rawCode)
     const ipHash = hashIpAddress(clientIp(request), env.IP_HASH_SALT)
     const supabase = getSupabaseServerClient()
     const windowStart = new Date(Date.now() - RATE_LIMIT.windowMs).toISOString()
@@ -98,14 +86,6 @@ export async function POST(request: NextRequest) {
       return fail(request, GENERIC_LOCKED, 429)
     }
 
-    const codeHash = hashActivationCode(rawCode, env.ACTIVATION_PEPPER)
-    const { data: activationCode, error: codeError } = await supabase
-      .from('activation_codes')
-      .select('id, tenant_id, status, expires_at')
-      .eq('code_hash', codeHash)
-      .eq('status', 'active')
-      .maybeSingle()
-
     const reject = async () => {
       await supabase.from('portal_login_attempts').insert({
         ip_hash: ipHash,
@@ -114,41 +94,29 @@ export async function POST(request: NextRequest) {
       return fail(request, GENERIC_INVALID, 400)
     }
 
+    if (!isValidActivationCodeFormat(code)) {
+      return reject()
+    }
+
+    const { data: activationCode, error: codeError } = await supabase
+      .from('activation_codes')
+      .select('id, code, business_name, status, project_id')
+      .eq('code', code)
+      .eq('status', 'active')
+      .maybeSingle()
+
     if (codeError || !activationCode) {
       return reject()
     }
 
-    const { data: tenant, error: tenantError } = await supabase
-      .from('tenants')
-      .select('id, name, slug, is_active')
-      .eq('id', activationCode.tenant_id)
+    const { data: project } = await supabase
+      .from('projects')
+      .select('id, slug, name')
+      .eq('id', activationCode.project_id)
       .maybeSingle()
 
-    if (tenantError || !tenant || !tenant.is_active) {
+    if (!project) {
       return reject()
-    }
-
-    if (activationCode.expires_at && new Date(activationCode.expires_at) < new Date()) {
-      await supabase
-        .from('activation_codes')
-        .update({ status: 'expired' })
-        .eq('id', activationCode.id)
-      return reject()
-    }
-
-    const { data: links } = await supabase
-      .from('activation_code_projects')
-      .select('project_id')
-      .eq('code_id', activationCode.id)
-
-    const projectIds = (links ?? []).map((row) => row.project_id)
-    let projects: { id: string; slug: string; name: string }[] = []
-    if (projectIds.length > 0) {
-      const { data: projectRows } = await supabase
-        .from('projects')
-        .select('id, slug, name')
-        .in('id', projectIds)
-      projects = projectRows ?? []
     }
 
     const now = Date.now()
@@ -159,8 +127,7 @@ export async function POST(request: NextRequest) {
     const userAgent = request.headers.get('user-agent') || null
 
     const { error: sessionError } = await supabase.from('portal_sessions').insert({
-      tenant_id: tenant.id,
-      code_id: activationCode.id,
+      activation_code_id: activationCode.id,
       token_hash: tokenHash,
       expires_at: idleExpires.toISOString(),
       absolute_expires_at: absoluteExpires.toISOString(),
@@ -185,7 +152,6 @@ export async function POST(request: NextRequest) {
 
     const cookieStore = await cookies()
     const cookieName = portalCookieName()
-    // Cookie mutlak tavan kadar yaşar; boşta kalma süresi DB expires_at ile yönetilir
     cookieStore.set({
       name: cookieName,
       value: token,
@@ -197,7 +163,6 @@ export async function POST(request: NextRequest) {
       maxAge: Math.floor(SESSION_TTL.absoluteMs / 1000),
     })
 
-    // Eski cookie adını temizle (geçiş)
     if (cookieName !== PORTAL_COOKIE_NAME) {
       cookieStore.delete('portal_session')
     }
@@ -205,8 +170,8 @@ export async function POST(request: NextRequest) {
     if (wantsJson(request)) {
       return NextResponse.json({
         success: true,
-        tenant: { id: tenant.id, name: tenant.name, slug: tenant.slug },
-        projects,
+        businessName: activationCode.business_name,
+        project,
       })
     }
 

@@ -1,6 +1,7 @@
+import { connection } from 'next/server'
 import { redirect } from 'next/navigation'
-import Link from 'next/link'
 import { Container } from '@/components/ui/Container'
+import { LostCodeHelp } from '@/components/portal/LostCodeHelp'
 import { PortalLoginForm } from '@/components/portal/PortalLoginForm'
 import { getPortalContext } from '@/lib/portal'
 import type { Metadata } from 'next'
@@ -19,15 +20,16 @@ interface Props {
 }
 
 export default async function PortalLoginPage({ searchParams }: Props) {
+  await connection()
   const session = await getPortalContext()
   if (session) redirect('/portal')
 
   const { hata } = await searchParams
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center py-12 px-4">
+    <div className="min-h-[100dvh] bg-background flex items-center justify-center py-12 px-4">
       <Container className="max-w-md">
-        <div className="border-2 border-[#1A1612] bg-surface-paper p-8 sm:p-10 shadow-[4px_4px_0px_#1A1612]">
+        <div className="border border-[#1A1612] bg-surface-paper p-8 sm:p-10">
           <div className="text-center mb-8">
             <p className="font-mono text-[10px] uppercase tracking-widest text-accent-ink mb-2">
               {'// PORTAL FİŞİ'}
@@ -36,20 +38,13 @@ export default async function PortalLoginPage({ searchParams }: Props) {
               Müşteri Portalı
             </h1>
             <p className="font-mono text-xs text-text-secondary">
-              Aktivasyon kodunuzla operasyon masasına girin
+              Aktivasyon kodunuzla destek sohbetine girin
             </p>
           </div>
 
           <PortalLoginForm initialError={hata} />
 
-          <div className="mt-6 text-center">
-            <Link
-              href="/#iletisim"
-              className="font-mono text-xs text-accent-ink hover:underline min-h-[44px] inline-flex items-center"
-            >
-              Kodunu mu kaybettin? Bize ulaş
-            </Link>
-          </div>
+          <LostCodeHelp />
         </div>
       </Container>
     </div>

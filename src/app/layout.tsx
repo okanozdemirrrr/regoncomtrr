@@ -1,8 +1,6 @@
 import type { Metadata } from 'next'
 import { Bricolage_Grotesque, JetBrains_Mono, Archivo } from 'next/font/google'
 import './globals.css'
-import { Navbar } from '@/components/layout/Navbar'
-import { Footer } from '@/components/layout/Footer'
 import { SmoothScrollProvider } from '@/components/providers/SmoothScrollProvider'
 import { SCROLL_BUILD_PREPAINT_SCRIPT } from '@/lib/scroll-build'
 import tr from '@/i18n/tr'
@@ -76,16 +74,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <script dangerouslySetInnerHTML={{ __html: SCROLL_BUILD_PREPAINT_SCRIPT }} />
       </head>
       <body suppressHydrationWarning>
-        <SmoothScrollProvider>
-          <a href="#main-content" className="skip-link">
-            {tr.a11y.skipToMain}
-          </a>
-          <Navbar />
-          <main id="main-content" tabIndex={-1} className="outline-none">
-            {children}
-          </main>
-          <Footer />
-        </SmoothScrollProvider>
+        <SmoothScrollProvider>{children}</SmoothScrollProvider>
       </body>
     </html>
   )

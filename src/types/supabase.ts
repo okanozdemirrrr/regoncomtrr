@@ -6,19 +6,11 @@ export type Json =
   | { [key: string]: Json | undefined }
   | Json[]
 
-export type FeedbackType = 'bug' | 'feature' | 'general' | 'question'
-export type FeedbackSeverity = 'low' | 'medium' | 'high' | 'critical'
-export type FeedbackStatus =
-  | 'received'
-  | 'reviewing'
-  | 'planned'
-  | 'in_progress'
-  | 'done'
-  | 'rejected'
-export type AuthorType = 'tenant' | 'admin'
-export type AdminRole = 'superadmin' | 'admin' | 'support'
 export type ProjectStatus = 'active' | 'beta' | 'archived'
-export type ActivationCodeStatus = 'active' | 'revoked' | 'expired'
+export type ActivationCodeStatus = 'active' | 'inactive'
+export type TicketCategory = 'bug' | 'crash' | 'paid_revision'
+export type TicketStatus = 'pending' | 'reviewing' | 'resolved'
+export type MessageSender = 'customer' | 'admin'
 
 type Rel = {
   foreignKeyName: string
@@ -31,32 +23,6 @@ type Rel = {
 export interface Database {
   public: {
     Tables: {
-      tenants: {
-        Row: {
-          id: string
-          name: string
-          slug: string | null
-          contact_email: string | null
-          contact_phone: string | null
-          is_active: boolean
-          metadata: Json
-          created_at: string
-          updated_at: string
-        }
-        Insert: {
-          id?: string
-          name: string
-          slug?: string | null
-          contact_email?: string | null
-          contact_phone?: string | null
-          is_active?: boolean
-          metadata?: Json
-          created_at?: string
-          updated_at?: string
-        }
-        Update: Partial<Database['public']['Tables']['tenants']['Insert']>
-        Relationships: []
-      }
       projects: {
         Row: {
           id: string
@@ -78,50 +44,41 @@ export interface Database {
       activation_codes: {
         Row: {
           id: string
-          tenant_id: string
-          code_hash: string
-          code_hint: string | null
+          code: string
+          project_id: string
+          business_name: string
           status: ActivationCodeStatus
-          expires_at: string | null
+          note: string | null
           created_at: string
           last_used_at: string | null
-          revoked_at: string | null
-          note: string | null
+          updated_at: string
         }
         Insert: {
           id?: string
-          tenant_id: string
-          code_hash: string
-          code_hint?: string | null
+          code: string
+          project_id: string
+          business_name: string
           status?: ActivationCodeStatus
-          expires_at?: string | null
+          note?: string | null
           created_at?: string
           last_used_at?: string | null
-          revoked_at?: string | null
-          note?: string | null
+          updated_at?: string
         }
         Update: Partial<Database['public']['Tables']['activation_codes']['Insert']>
         Relationships: [
           {
-            foreignKeyName: 'activation_codes_tenant_id_fkey'
-            columns: ['tenant_id']
+            foreignKeyName: 'activation_codes_project_id_fkey'
+            columns: ['project_id']
             isOneToOne: false
-            referencedRelation: 'tenants'
+            referencedRelation: 'projects'
             referencedColumns: ['id']
           },
         ]
       }
-      activation_code_projects: {
-        Row: { code_id: string; project_id: string }
-        Insert: { code_id: string; project_id: string }
-        Update: never
-        Relationships: Rel[]
-      }
       portal_sessions: {
         Row: {
           id: string
-          tenant_id: string
-          code_id: string | null
+          activation_code_id: string
           token_hash: string
           created_at: string
           last_seen_at: string
@@ -133,8 +90,7 @@ export interface Database {
         }
         Insert: {
           id?: string
-          tenant_id: string
-          code_id?: string | null
+          activation_code_id: string
           token_hash: string
           created_at?: string
           last_seen_at?: string
@@ -163,145 +119,73 @@ export interface Database {
         Update: never
         Relationships: []
       }
-      feedbacks: {
+      tickets: {
         Row: {
           id: string
-          tenant_id: string
+          activation_code_id: string
           project_id: string
-          type: FeedbackType
-          title: string
-          body: string
-          severity: FeedbackSeverity
-          status: FeedbackStatus
-          is_read: boolean
-          idempotency_key: string | null
-          app_version: string | null
-          device_info: Json
+          category: TicketCategory
+          status: TicketStatus
+          subject: string | null
           created_at: string
           updated_at: string
+          last_message_at: string
         }
         Insert: {
           id?: string
-          tenant_id: string
+          activation_code_id: string
           project_id: string
-          type: FeedbackType
-          title: string
+          category: TicketCategory
+          status?: TicketStatus
+          subject?: string | null
+          created_at?: string
+          updated_at?: string
+          last_message_at?: string
+        }
+        Update: Partial<Database['public']['Tables']['tickets']['Insert']>
+        Relationships: Rel[]
+      }
+      ticket_messages: {
+        Row: {
+          id: string
+          ticket_id: string
+          sender: MessageSender
           body: string
-          severity?: FeedbackSeverity
-          status?: FeedbackStatus
-          is_read?: boolean
-          idempotency_key?: string | null
-          app_version?: string | null
-          device_info?: Json
-          created_at?: string
-          updated_at?: string
-        }
-        Update: Partial<Database['public']['Tables']['feedbacks']['Insert']>
-        Relationships: []
-      }
-      feedback_comments: {
-        Row: {
-          id: string
-          feedback_id: string
-          author_type: AuthorType
-          author_name: string
-          message: string
           created_at: string
         }
         Insert: {
           id?: string
-          feedback_id: string
-          author_type: AuthorType
-          author_name: string
-          message: string
+          ticket_id: string
+          sender: MessageSender
+          body?: string
           created_at?: string
         }
         Update: never
-        Relationships: []
+        Relationships: Rel[]
       }
-      feedback_attachments: {
+      ticket_attachments: {
         Row: {
           id: string
-          feedback_id: string
-          file_url: string
+          message_id: string
+          ticket_id: string
+          storage_path: string
           file_name: string
-          file_size: number | null
+          file_size: number
+          mime_type: string
           created_at: string
         }
         Insert: {
           id?: string
-          feedback_id: string
-          file_url: string
+          message_id: string
+          ticket_id: string
+          storage_path: string
           file_name: string
-          file_size?: number | null
+          file_size: number
+          mime_type: string
           created_at?: string
         }
         Update: never
-        Relationships: []
-      }
-      status_histories: {
-        Row: {
-          id: string
-          feedback_id: string
-          old_status: string | null
-          new_status: string
-          changed_by: string
-          created_at: string
-        }
-        Insert: {
-          id?: string
-          feedback_id: string
-          old_status?: string | null
-          new_status: string
-          changed_by: string
-          created_at?: string
-        }
-        Update: never
-        Relationships: []
-      }
-      api_keys: {
-        Row: {
-          id: string
-          project_id: string
-          key_hash: string
-          name: string
-          is_active: boolean
-          created_at: string
-        }
-        Insert: {
-          id?: string
-          project_id: string
-          key_hash: string
-          name: string
-          is_active?: boolean
-          created_at?: string
-        }
-        Update: Partial<Database['public']['Tables']['api_keys']['Insert']>
-        Relationships: []
-      }
-      admin_users: {
-        Row: {
-          id: string
-          auth_user_id: string | null
-          email: string
-          full_name: string
-          role: AdminRole
-          is_active: boolean
-          created_at: string
-          updated_at: string
-        }
-        Insert: {
-          id?: string
-          auth_user_id?: string | null
-          email: string
-          full_name: string
-          role?: AdminRole
-          is_active?: boolean
-          created_at?: string
-          updated_at?: string
-        }
-        Update: Partial<Database['public']['Tables']['admin_users']['Insert']>
-        Relationships: []
+        Relationships: Rel[]
       }
     }
     Views: { [_ in never]: never }
