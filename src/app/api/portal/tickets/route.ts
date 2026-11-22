@@ -6,6 +6,7 @@ import { getPortalContext } from '@/lib/portal'
 import { listTicketsForCode } from '@/lib/ticket-api'
 import { getSupabaseServerClient } from '@/lib/supabase/server'
 import type { TicketCategory } from '@/lib/support'
+import { sendTelegramNotification } from '@/lib/telegram'
 
 const createSchema = z.object({
   category: z.enum(['bug', 'crash', 'paid_revision']),
@@ -99,9 +100,11 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Mesaj kaydedilemedi.' }, { status: 500 })
   }
 
+  let uploadedFileName: string | null = null
   if (file) {
     try {
       const uploaded = await uploadSupportAttachment(ticket.id, file)
+      uploadedFileName = uploaded.fileName
       const { error: attError } = await supabase.from('ticket_attachments').insert({
         message_id: message.id,
         ticket_id: ticket.id,
@@ -120,6 +123,16 @@ export async function POST(request: NextRequest) {
       )
     }
   }
+
+  await sendTelegramNotification({
+    kind: 'new_ticket',
+    businessName: session.businessName,
+    projectName: session.project.name,
+    category,
+    body,
+    hasAttachment: Boolean(file),
+    fileName: uploadedFileName,
+  })
 
   return NextResponse.json({ success: true, ticketId: ticket.id })
 }

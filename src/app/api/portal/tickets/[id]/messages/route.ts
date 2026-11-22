@@ -5,6 +5,8 @@ import { assertSameOrigin } from '@/lib/portal-security'
 import { getPortalContext } from '@/lib/portal'
 import { getTicketMessages } from '@/lib/ticket-api'
 import { getSupabaseServerClient } from '@/lib/supabase/server'
+import type { TicketCategory } from '@/lib/support'
+import { sendTelegramNotification } from '@/lib/telegram'
 
 interface Params {
   params: Promise<{ id: string }>
@@ -51,7 +53,7 @@ export async function POST(request: NextRequest, { params }: Params) {
   const supabase = getSupabaseServerClient()
   const { data: ticket } = await supabase
     .from('tickets')
-    .select('id')
+    .select('id, category')
     .eq('id', id)
     .eq('activation_code_id', session.activationCodeId)
     .maybeSingle()
@@ -81,12 +83,14 @@ export async function POST(request: NextRequest, { params }: Params) {
     return NextResponse.json({ error: 'Mesaj veya dosya gerekli.' }, { status: 400 })
   }
 
+  const messageBody = text || (file ? 'Dosya eklendi.' : '')
+
   const { data: message, error: messageError } = await supabase
     .from('ticket_messages')
     .insert({
       ticket_id: ticket.id,
       sender: 'customer',
-      body: text || (file ? 'Dosya eklendi.' : ''),
+      body: messageBody,
     })
     .select('id')
     .single()
@@ -95,9 +99,11 @@ export async function POST(request: NextRequest, { params }: Params) {
     return NextResponse.json({ error: 'Mesaj gönderilemedi.' }, { status: 500 })
   }
 
+  let uploadedFileName: string | null = null
   if (file) {
     try {
       const uploaded = await uploadSupportAttachment(ticket.id, file)
+      uploadedFileName = uploaded.fileName
       await supabase.from('ticket_attachments').insert({
         message_id: message.id,
         ticket_id: ticket.id,
@@ -118,6 +124,16 @@ export async function POST(request: NextRequest, { params }: Params) {
     .from('tickets')
     .update({ last_message_at: new Date().toISOString() })
     .eq('id', ticket.id)
+
+  await sendTelegramNotification({
+    kind: 'new_message',
+    businessName: session.businessName,
+    projectName: session.project.name,
+    category: ticket.category as TicketCategory,
+    body: messageBody,
+    hasAttachment: Boolean(file),
+    fileName: uploadedFileName,
+  })
 
   const messages = await getTicketMessages(ticket.id)
   return NextResponse.json({ success: true, messages })
