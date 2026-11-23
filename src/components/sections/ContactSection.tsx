@@ -46,10 +46,6 @@ export function ContactSection() {
                   </p>
                 </div>
               </Reveal>
-
-              <div className="pt-4 font-mono text-xs text-text-muted">
-                <p>* İletişim formu ve otomatik talep mekanizması Aşama 6&apos;da açılacaktır. Şimdilik doğrudan arama ve e-posta hatlarımız aktiftir.</p>
-              </div>
             </div>
 
             {/* Sağ Kolon: İletişim Bağlantıları (Config tabanlı, hardcoded değil) */}

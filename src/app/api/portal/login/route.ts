@@ -1,6 +1,4 @@
 import 'server-only'
-import { cookies } from 'next/headers'
-import { redirect } from 'next/navigation'
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import {
@@ -36,7 +34,7 @@ function fail(request: NextRequest, message: string, status: number) {
     return NextResponse.json({ error: message }, { status })
   }
   const params = new URLSearchParams({ hata: message })
-  redirect(`/portal/giris?${params.toString()}`)
+  return NextResponse.redirect(new URL(`/portal/giris?${params.toString()}`, request.url))
 }
 
 async function readCode(request: NextRequest): Promise<string> {
@@ -57,13 +55,38 @@ function clientIp(request: NextRequest) {
   )
 }
 
+function attachPortalCookie(response: NextResponse, token: string, absoluteExpires: Date) {
+  const cookieName = portalCookieName()
+  response.cookies.set({
+    name: cookieName,
+    value: token,
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax',
+    path: '/',
+    expires: absoluteExpires,
+    maxAge: Math.floor(SESSION_TTL.absoluteMs / 1000),
+  })
+  if (cookieName !== PORTAL_COOKIE_NAME) {
+    response.cookies.delete('portal_session')
+  }
+  return response
+}
+
 export async function POST(request: NextRequest) {
   try {
     if (!assertSameOrigin(request)) {
       return fail(request, GENERIC_CSRF, 403)
     }
 
-    const env = getEnv()
+    let env
+    try {
+      env = getEnv()
+    } catch (err) {
+      console.error('[portal/login] Ortam değişkenleri eksik/geçersiz', err)
+      return fail(request, GENERIC_SERVER, 500)
+    }
+
     const rawCode = await readCode(request)
     const code = normalizeActivationCode(rawCode)
     const ipHash = hashIpAddress(clientIp(request), env.IP_HASH_SALT)
@@ -77,7 +100,7 @@ export async function POST(request: NextRequest) {
       .gte('created_at', windowStart)
 
     if (attemptsError) {
-      console.error('Rate limit kontrol hatası')
+      console.error('Rate limit kontrol hatası', attemptsError.message)
       return fail(request, GENERIC_SERVER, 500)
     }
 
@@ -136,7 +159,7 @@ export async function POST(request: NextRequest) {
     })
 
     if (sessionError) {
-      console.error('Oturum oluşturma hatası')
+      console.error('Oturum oluşturma hatası', sessionError.message)
       return fail(request, GENERIC_SERVER, 500)
     }
 
@@ -150,36 +173,22 @@ export async function POST(request: NextRequest) {
       success: true,
     })
 
-    const cookieStore = await cookies()
-    const cookieName = portalCookieName()
-    cookieStore.set({
-      name: cookieName,
-      value: token,
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      path: '/',
-      expires: absoluteExpires,
-      maxAge: Math.floor(SESSION_TTL.absoluteMs / 1000),
-    })
-
-    if (cookieName !== PORTAL_COOKIE_NAME) {
-      cookieStore.delete('portal_session')
-    }
-
     if (wantsJson(request)) {
-      return NextResponse.json({
+      const response = NextResponse.json({
         success: true,
         businessName: activationCode.business_name,
         project,
       })
+      return attachPortalCookie(response, token, absoluteExpires)
     }
 
-    redirect('/portal')
+    const response = NextResponse.redirect(new URL('/portal', request.url))
+    return attachPortalCookie(response, token, absoluteExpires)
   } catch (error) {
     if (error instanceof z.ZodError) {
       return fail(request, GENERIC_INVALID, 400)
     }
-    throw error
+    console.error('[portal/login] Beklenmeyen hata', error)
+    return fail(request, GENERIC_SERVER, 500)
   }
 }

@@ -15,13 +15,13 @@ export const siteConfig = {
   },
 
   contact: {
-    email: process.env.NEXT_PUBLIC_CONTACT_EMAIL || 'info@regon.com.tr',
-    phone: process.env.NEXT_PUBLIC_CONTACT_PHONE || '+90 (216) 000 00 00',
+    email: process.env.NEXT_PUBLIC_CONTACT_EMAIL || 'regoniletisim@gmail.com',
+    phone: process.env.NEXT_PUBLIC_CONTACT_PHONE || '+90 505 059 16 29',
     address:
       process.env.NEXT_PUBLIC_CONTACT_ADDRESS ||
-      'Kadıköy / İstanbul, Türkiye',
+      'Samsun / 19 Mayıs / Samsun Üniversitesi',
     supportEmail:
-      process.env.NEXT_PUBLIC_SUPPORT_EMAIL || 'destek@regon.com.tr',
+      process.env.NEXT_PUBLIC_SUPPORT_EMAIL || 'regoniletisim@gmail.com',
   },
 
   // Sadece somut, teknik ve doğrulanabilir metrikler

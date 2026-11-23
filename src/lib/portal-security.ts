@@ -1,5 +1,14 @@
 import { NextRequest } from 'next/server'
 
+/** www ve apex (regon.com.tr / www.regon.com.tr) aynı site sayılır. */
+function normalizeHost(host: string): string {
+  return host.trim().toLowerCase().replace(/:\d+$/, '').replace(/^www\./, '')
+}
+
+function hostsMatch(a: string, b: string): boolean {
+  return normalizeHost(a) === normalizeHost(b)
+}
+
 /**
  * Durum değiştiren isteklerde Origin/Host uyumu (CSRF azaltma).
  * SameSite=Lax cookie ile birlikte kullanılır.
@@ -11,7 +20,7 @@ export function assertSameOrigin(request: NextRequest): boolean {
   const origin = request.headers.get('origin')
   if (origin) {
     try {
-      return new URL(origin).host === host
+      return hostsMatch(new URL(origin).host, host)
     } catch {
       return false
     }
@@ -21,7 +30,7 @@ export function assertSameOrigin(request: NextRequest): boolean {
   const referer = request.headers.get('referer')
   if (referer) {
     try {
-      return new URL(referer).host === host
+      return hostsMatch(new URL(referer).host, host)
     } catch {
       return false
     }

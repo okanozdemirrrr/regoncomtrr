@@ -19,7 +19,14 @@ export async function POST(request: NextRequest) {
     }
     await setAdminSessionCookie()
     return NextResponse.json({ success: true })
-  } catch {
-    return NextResponse.json({ error: 'Geçersiz istek.' }, { status: 400 })
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return NextResponse.json({ error: 'Geçersiz istek.' }, { status: 400 })
+    }
+    console.error('[admin/login] Ortam veya oturum hatası', error)
+    return NextResponse.json(
+      { error: 'Giriş hatası. Sunucu ayarlarını kontrol edin.' },
+      { status: 500 },
+    )
   }
 }
