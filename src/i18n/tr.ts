@@ -21,7 +21,7 @@ const tr = {
   },
   hero: {
     eyebrow: 'Yazılım · Donanım · Yapay Zekâ',
-    headline: 'Sorun varsa\nçözeriz.',
+    headline: 'Sorun varsa\nüretiriz.',
     sub: 'Devre kartından yazılıma, yapay zekâdan sensör ve otomasyona — işletmelerin de bireylerin de gerçek sorunlarına çözüm üretiyoruz.',
     cta: 'Ürünleri incele',
     ctaPortal: 'Müşteri girişi',

@@ -33,7 +33,7 @@ export default function HomePage() {
             {/* Ana Başlık */}
             <h1 className="font-display text-3xl font-black leading-[1.08] tracking-tight text-text-primary sm:text-5xl lg:text-6xl">
               <span className="block">Sorun varsa</span>
-              <span className="block">çözeriz.</span>
+              <span className="block">üretiriz.</span>
             </h1>
 
             {/* Somut Açıklama */}
