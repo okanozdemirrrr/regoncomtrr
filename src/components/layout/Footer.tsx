@@ -6,10 +6,10 @@ import tr from '@/i18n/tr'
 const COPYRIGHT_YEAR = 2026
 
 const productLinks = [
-  { href: '#pos', label: 'Regon POS' },
-  { href: '#kurye', label: 'Regon Kurye' },
-  { href: '#bayi', label: 'Regon Bayi' },
-  { href: '#market', label: 'Regon Market' },
+  { href: '/projeler/regon-pos', label: 'Regon POS' },
+  { href: '/projeler/regon-kurye', label: 'Regon Kurye' },
+  { href: '/projeler/regon-bayi', label: 'Regon Bayi' },
+  { href: '/projeler/regon-market', label: 'Regon Market' },
 ]
 
 const legalLinks = [
