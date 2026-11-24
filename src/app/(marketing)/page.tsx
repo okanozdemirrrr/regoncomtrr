@@ -33,7 +33,7 @@ export default function HomePage() {
             {/* Ana Başlık */}
             <h1 className="font-display text-3xl font-black leading-[1.08] tracking-tight text-text-primary sm:text-5xl lg:text-6xl">
               <span className="block">Sorun varsa</span>
-              <span className="block">üretiriz.</span>
+              <span className="block">ÜRETİRİZ.</span>
             </h1>
 
             {/* Somut Açıklama */}
@@ -81,18 +81,9 @@ export default function HomePage() {
           ============================================================ */}
       <section className="border-b border-[#1A1612]/20 bg-surface-1 py-2.5 font-mono text-[11px] text-text-secondary">
         <Container>
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div className="flex items-center gap-3">
-              <span className="inline-block size-2 rounded-full bg-accent animate-pulse" />
-              <span className="font-bold text-text-primary">SİSTEM ÇEVRİMİÇİ</span>
-              <span className="hidden sm:inline text-text-muted">{'//'}</span>
-              <span className="hidden sm:inline">SAHA DAĞITIM VE POS AĞI HAZIR</span>
-            </div>
-            <div className="flex items-center gap-4 text-[10px]">
-              <span>MÜŞTERİ TANIMA: AKTİF</span>
-              <span>TERMAL YAZICI: AKTİF</span>
-              <span className="text-accent-ink font-bold">CANLI HARİTA: AKTİF</span>
-            </div>
+          <div className="flex items-center gap-3">
+            <span className="inline-block size-2 rounded-full bg-accent animate-pulse" />
+            <span className="font-bold text-text-primary">SİSTEM ÇEVRİMİÇİ</span>
           </div>
         </Container>
       </section>
